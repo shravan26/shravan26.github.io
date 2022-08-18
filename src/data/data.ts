@@ -89,7 +89,7 @@ export const otherWorks = [
 
 export const descriptions = {
     motivation:
-        "Dilligent advancement of software is my primary motive. I am a software development enthusiast, I love to dive deep into the whys of the development world before the hows. Constantly challenging myself to be a better programmer than I was an hour ago. I live and breathe full stack development, primarily in JS. I had an epiphany that programming is a community, I am now working to become one of the most influencial developers who contributes towards new and improved software development methodologies",
+        "I am a Full Stack Developer. Dilligent advancement of software is my primary motive. I am a software development enthusiast, I love to dive deep into the whys of the development world before the hows. Constantly challenging myself to be a better programmer than I was an hour ago. I live and breathe full stack development, and I'm actively developing my stack. I had an epiphany that programming is a community, and I am now working to become one of the most influencial developers who contributes towards developing new and innovative software.",
     workAddress:
         "No:1, 5th floor, 'C' Block, Phase 2, IIT-Madras Research Park, Kanagam Rd, Tharamani,  Chennai, Tamil Nadu 600113.",
 };
