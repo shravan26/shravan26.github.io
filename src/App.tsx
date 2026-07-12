@@ -1,3 +1,4 @@
+import { useState } from "react";
 import styled, { keyframes } from "styled-components";
 import {
     competencies,
@@ -20,31 +21,41 @@ const scan = keyframes`
     to { transform: translateY(100vh); }
 `;
 
-
 const drift = keyframes`
     from { background-position: 0 0; }
     to { background-position: 0 80px; }
 `;
 
+const glowPulse = keyframes`
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 0.7; }
+`;
+
 const Page = styled.main`
-    --bg: #050607;
-    --panel: rgba(10, 14, 12, 0.92);
-    --panel-soft: rgba(12, 18, 15, 0.76);
-    --line: rgba(117, 255, 181, 0.16);
-    --line-strong: rgba(117, 255, 181, 0.34);
-    --green: #75ffb5;
-    --green-dim: #3fbf80;
-    --amber: #ffd37a;
-    --red: #ff6b6b;
-    --text: #e8fff1;
-    --muted: #8fa99a;
+    --bg: #08080f;
+    --bg-deep: #05050a;
+    --panel: rgba(12, 13, 24, 0.94);
+    --panel-soft: rgba(16, 17, 32, 0.82);
+    --line: rgba(125, 249, 255, 0.14);
+    --line-strong: rgba(255, 0, 124, 0.38);
+    --cyan: #7df9ff;
+    --magenta: #ff007c;
+    --blue: #7aa2f7;
+    --violet: #bb9af7;
+    --amber: #e0af68;
+    --green: #9ece6a;
+    --red: #f7768e;
+    --text: #c0caf5;
+    --text-soft: #a9b1d6;
+    --muted: #565f89;
 
     min-height: 100vh;
     color: var(--text);
     background:
-        radial-gradient(circle at 18% 0%, rgba(117, 255, 181, 0.08), transparent 32rem),
-        radial-gradient(circle at 88% 20%, rgba(255, 211, 122, 0.05), transparent 28rem),
-        linear-gradient(180deg, #070807 0%, #050607 48%, #030403 100%);
+        radial-gradient(circle at 12% 0%, rgba(255, 0, 124, 0.12), transparent 28rem),
+        radial-gradient(circle at 88% 18%, rgba(125, 249, 255, 0.1), transparent 30rem),
+        radial-gradient(circle at 50% 110%, rgba(122, 162, 247, 0.08), transparent 34rem),
+        linear-gradient(180deg, #0a0a14 0%, #08080f 45%, #05050a 100%);
     position: relative;
     overflow: hidden;
 
@@ -54,9 +65,9 @@ const Page = styled.main`
         inset: 0;
         pointer-events: none;
         background:
-            linear-gradient(rgba(117, 255, 181, 0.028) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(117, 255, 181, 0.018) 1px, transparent 1px);
-        background-size: 100% 4px, 4px 100%;
+            linear-gradient(rgba(125, 249, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 0, 124, 0.025) 1px, transparent 1px);
+        background-size: 100% 3px, 48px 100%;
         mix-blend-mode: screen;
         z-index: 1;
     }
@@ -65,10 +76,16 @@ const Page = styled.main`
         content: "";
         position: fixed;
         inset: 0;
-        height: 24vh;
+        height: 18vh;
         pointer-events: none;
-        background: linear-gradient(to bottom, transparent, rgba(117, 255, 181, 0.055), transparent);
-        animation: ${scan} 9s linear infinite;
+        background: linear-gradient(
+            to bottom,
+            transparent,
+            rgba(125, 249, 255, 0.05),
+            rgba(255, 0, 124, 0.04),
+            transparent
+        );
+        animation: ${scan} 8s linear infinite;
         z-index: 2;
     }
 `;
@@ -77,13 +94,18 @@ const MatrixBackdrop = styled.div`
     position: fixed;
     inset: 0;
     pointer-events: none;
-    opacity: 0.18;
+    opacity: 0.22;
     z-index: 0;
     background-image:
-        linear-gradient(180deg, rgba(117, 255, 181, 0.16), transparent 42%),
-        repeating-linear-gradient(90deg, transparent 0 54px, rgba(117, 255, 181, 0.12) 54px 56px, transparent 56px 112px);
+        linear-gradient(180deg, rgba(255, 0, 124, 0.14), transparent 40%),
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 52px,
+            rgba(125, 249, 255, 0.1) 52px 53px,
+            transparent 53px 104px
+        );
     background-size: 100% 80px, 100% 100%;
-    animation: ${drift} 18s linear infinite;
+    animation: ${drift} 16s linear infinite;
 `;
 
 const Shell = styled.div`
@@ -102,11 +124,12 @@ const Topbar = styled.nav`
 `;
 
 const Brand = styled.a`
-    color: var(--green);
+    color: var(--cyan);
     text-decoration: none;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     font-weight: 700;
+    text-shadow: 0 0 18px rgba(125, 249, 255, 0.35);
 `;
 
 const NavLinks = styled.div`
@@ -120,15 +143,18 @@ const NavLinks = styled.div`
         transition: color 160ms ease;
     }
 
-    a:hover { color: var(--green); }
+    a:hover { color: var(--magenta); }
 
     @media (max-width: 720px) { display: none; }
 `;
 
 const TerminalShell = styled.section`
     border: 1px solid var(--line-strong);
-    background: linear-gradient(180deg, rgba(12, 18, 15, 0.96), rgba(7, 10, 8, 0.94));
-    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+    background: linear-gradient(180deg, rgba(14, 15, 28, 0.96), rgba(8, 8, 15, 0.96));
+    box-shadow:
+        0 30px 90px rgba(0, 0, 0, 0.65),
+        0 0 40px rgba(255, 0, 124, 0.08),
+        0 0 0 1px rgba(125, 249, 255, 0.04) inset;
     border-radius: 18px;
     overflow: hidden;
 `;
@@ -139,7 +165,7 @@ const TerminalChrome = styled.div`
     gap: 18px;
     align-items: center;
     border-bottom: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.025);
+    background: rgba(255, 255, 255, 0.02);
     padding: 12px 16px;
     color: var(--muted);
     font-family: "IBM Plex Mono", monospace;
@@ -155,12 +181,12 @@ const Dots = styled.div`
         height: 11px;
         border-radius: 999px;
         display: block;
-        background: var(--green-dim);
-        opacity: 0.88;
+        opacity: 0.9;
     }
 
     span:nth-child(1) { background: var(--red); }
     span:nth-child(2) { background: var(--amber); }
+    span:nth-child(3) { background: var(--green); }
 `;
 
 const Hero = styled.div`
@@ -174,12 +200,12 @@ const Hero = styled.div`
 `;
 
 const Prompt = styled.div`
-    color: var(--green);
+    color: var(--magenta);
     font-family: "IBM Plex Mono", monospace;
     font-size: 0.95rem;
     margin-bottom: 20px;
 
-    span { color: var(--amber); }
+    span { color: var(--cyan); }
 `;
 
 const Title = styled.h1`
@@ -189,23 +215,26 @@ const Title = styled.h1`
     line-height: 0.92;
     letter-spacing: -0.08em;
     color: var(--text);
+    text-shadow: 0 0 40px rgba(125, 249, 255, 0.12);
 `;
 
 const Role = styled.h2`
     margin: 24px 0 18px;
-    color: var(--green);
+    color: var(--cyan);
     font-family: "IBM Plex Mono", monospace;
     font-size: clamp(1rem, 2vw, 1.28rem);
     font-weight: 600;
+    text-shadow: 0 0 20px rgba(125, 249, 255, 0.25);
 
     &::after {
         content: "_";
+        color: var(--magenta);
         animation: ${caret} 1s steps(1) infinite;
     }
 `;
 
 const Lead = styled.p`
-    color: #c7d8ce;
+    color: var(--text-soft);
     max-width: 740px;
     font-size: clamp(1.03rem, 1.9vw, 1.24rem);
     line-height: 1.8;
@@ -219,26 +248,29 @@ const ActionRow = styled.div`
 `;
 
 const Button = styled.a<{ $primary?: boolean }>`
-    border: 1px solid ${(props) => (props.$primary ? "var(--green)" : "var(--line-strong)")};
-    background: ${(props) => (props.$primary ? "rgba(117, 255, 181, 0.12)" : "rgba(255, 255, 255, 0.025)")};
-    color: ${(props) => (props.$primary ? "var(--green)" : "var(--text)")};
+    border: 1px solid ${(props) => (props.$primary ? "var(--magenta)" : "var(--line)")};
+    background: ${(props) => (props.$primary ? "rgba(255, 0, 124, 0.14)" : "rgba(125, 249, 255, 0.04)")};
+    color: ${(props) => (props.$primary ? "var(--magenta)" : "var(--text)")};
     border-radius: 10px;
     padding: 13px 16px;
     text-decoration: none;
     font-family: "IBM Plex Mono", monospace;
     font-weight: 700;
-    transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+    transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    box-shadow: ${(props) => (props.$primary ? "0 0 18px rgba(255, 0, 124, 0.2)" : "none")};
 
     &:hover {
         transform: translateY(-2px);
-        background: rgba(117, 255, 181, 0.16);
-        border-color: var(--green);
+        background: rgba(125, 249, 255, 0.1);
+        border-color: var(--cyan);
+        color: var(--cyan);
+        box-shadow: 0 0 18px rgba(125, 249, 255, 0.18);
     }
 `;
 
 const CodeCard = styled.aside`
     border: 1px solid var(--line);
-    background: rgba(0, 0, 0, 0.28);
+    background: rgba(0, 0, 0, 0.35);
     border-radius: 14px;
     padding: 20px;
     font-family: "IBM Plex Mono", monospace;
@@ -251,9 +283,10 @@ const CodeCard = styled.aside`
         top: -12px;
         left: 18px;
         padding: 2px 8px;
-        background: #090d0a;
+        background: #08080f;
         color: var(--amber);
         font-size: 0.76rem;
+        border: 1px solid rgba(224, 175, 104, 0.25);
     }
 `;
 
@@ -264,9 +297,9 @@ const CodeLine = styled.div`
     color: var(--muted);
     line-height: 1.8;
 
-    span { color: rgba(143, 169, 154, 0.5); text-align: right; }
-    strong { color: var(--green); font-weight: 600; }
-    em { color: var(--amber); font-style: normal; }
+    span { color: rgba(86, 95, 137, 0.7); text-align: right; }
+    strong { color: var(--cyan); font-weight: 600; }
+    em { color: var(--magenta); font-style: normal; }
 `;
 
 const StatsBar = styled.div`
@@ -280,14 +313,15 @@ const StatsBar = styled.div`
 `;
 
 const Stat = styled.div`
-    background: rgba(7, 10, 8, 0.96);
+    background: rgba(8, 8, 15, 0.96);
     padding: 20px;
 
     strong {
         display: block;
-        color: var(--green);
+        color: var(--cyan);
         font-size: clamp(1.8rem, 4vw, 2.7rem);
         line-height: 1;
+        text-shadow: 0 0 16px rgba(125, 249, 255, 0.25);
     }
 
     span {
@@ -347,24 +381,26 @@ const ProjectCard = styled.article`
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 170ms ease, border-color 170ms ease, background 170ms ease;
+    transition: transform 170ms ease, border-color 170ms ease, background 170ms ease, box-shadow 170ms ease;
 
     &:hover {
         transform: translateY(-4px);
-        border-color: var(--green);
-        background: rgba(14, 22, 17, 0.9);
+        border-color: var(--magenta);
+        background: rgba(18, 14, 28, 0.92);
+        box-shadow: 0 0 28px rgba(255, 0, 124, 0.12);
     }
 
     h3 { margin: 0 0 12px; font-size: 1.45rem; }
-    p { color: #c7d8ce; line-height: 1.7; }
+    p { color: var(--text-soft); line-height: 1.7; }
 `;
 
 const Kicker = styled.div`
-    color: var(--green);
+    color: var(--magenta);
     font-family: "IBM Plex Mono", monospace;
     font-size: 0.82rem;
     margin-bottom: 12px;
     text-transform: uppercase;
+    letter-spacing: 0.04em;
 `;
 
 const ChipGrid = styled.div`
@@ -377,10 +413,11 @@ const ChipGrid = styled.div`
 const Chip = styled.span`
     border: 1px solid var(--line);
     border-radius: 999px;
-    color: var(--muted);
+    color: var(--text-soft);
     padding: 7px 10px;
     font-family: "IBM Plex Mono", monospace;
     font-size: 0.78rem;
+    background: rgba(125, 249, 255, 0.03);
 `;
 
 const Links = styled.div`
@@ -388,7 +425,7 @@ const Links = styled.div`
     gap: 12px;
     margin-top: 18px;
 
-    a { color: var(--green); font-family: "IBM Plex Mono", monospace; font-weight: 700; }
+    a { color: var(--cyan); font-family: "IBM Plex Mono", monospace; font-weight: 700; }
 `;
 
 const Toolkit = styled.div`
@@ -413,8 +450,8 @@ const CompetencyList = styled.div`
     span {
         color: var(--text);
         padding: 11px 12px;
-        background: rgba(255, 255, 255, 0.025);
-        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(125, 249, 255, 0.08);
         border-radius: 10px;
         font-family: "IBM Plex Mono", monospace;
     }
@@ -428,30 +465,102 @@ const ToolGroup = styled.div`
     h3 { margin: 0 0 10px; color: var(--amber); font-size: 1rem; }
 `;
 
-const Timeline = styled.div`
+const LogList = styled.div`
     display: grid;
-    gap: 12px;
+    gap: 10px;
 `;
 
-const TimelineItem = styled.article`
-    display: grid;
-    grid-template-columns: 170px 1fr;
-    gap: 22px;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    background: var(--panel-soft);
-    padding: 22px;
-
-    h3 { margin: 0 0 10px; }
-    p { color: #c7d8ce; line-height: 1.7; margin-bottom: 0; }
-
-    @media (max-width: 760px) { grid-template-columns: 1fr; }
+const LogItem = styled.article<{ $open: boolean }>`
+    border: 1px solid ${(props) => (props.$open ? "var(--line-strong)" : "var(--line)")};
+    border-radius: 14px;
+    background: ${(props) => (props.$open ? "rgba(18, 14, 28, 0.95)" : "var(--panel-soft)")};
+    overflow: hidden;
+    transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    box-shadow: ${(props) => (props.$open ? "0 0 24px rgba(255, 0, 124, 0.1)" : "none")};
 `;
 
-const DateBlock = styled.div`
-    color: var(--green);
+const LogHeader = styled.button`
+    width: 100%;
+    display: grid;
+    grid-template-columns: 150px 1fr auto;
+    gap: 18px;
+    align-items: center;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    padding: 18px 20px;
+
+    @media (max-width: 760px) {
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+    }
+`;
+
+const LogDate = styled.div`
+    color: var(--cyan);
     font-family: "IBM Plex Mono", monospace;
-    font-size: 0.86rem;
+    font-size: 0.84rem;
+
+    @media (max-width: 760px) {
+        grid-column: 1 / -1;
+    }
+`;
+
+const LogSummary = styled.div`
+    min-width: 0;
+
+    h3 {
+        margin: 0 0 6px;
+        font-size: 1.05rem;
+        color: var(--text);
+    }
+
+    p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.5;
+    }
+`;
+
+const LogToggle = styled.span<{ $open: boolean }>`
+    font-family: "IBM Plex Mono", monospace;
+    color: var(--magenta);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    transform: ${(props) => (props.$open ? "rotate(90deg)" : "none")};
+    transition: transform 160ms ease;
+`;
+
+const LogBody = styled.div<{ $open: boolean }>`
+    display: ${(props) => (props.$open ? "grid" : "none")};
+    gap: 12px;
+    padding: 0 20px 20px;
+    border-top: 1px solid rgba(125, 249, 255, 0.08);
+    margin-top: -2px;
+    padding-top: 16px;
+`;
+
+const LogAccent = styled.div`
+    color: var(--magenta);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+`;
+
+const BulletList = styled.ul`
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 10px;
+
+    li {
+        color: var(--text-soft);
+        line-height: 1.65;
+    }
 `;
 
 const Footer = styled.footer`
@@ -461,18 +570,66 @@ const Footer = styled.footer`
 const ContactPanel = styled.div`
     border: 1px solid var(--line-strong);
     border-radius: 18px;
-    background: linear-gradient(180deg, rgba(14, 22, 17, 0.9), rgba(7, 10, 8, 0.94));
+    background: linear-gradient(180deg, rgba(18, 14, 28, 0.94), rgba(8, 8, 15, 0.96));
     padding: clamp(24px, 5vw, 48px);
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 28px;
+    position: relative;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: auto 18% -2px 18%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--magenta), var(--cyan), transparent);
+        animation: ${glowPulse} 3.2s ease-in-out infinite;
+    }
 
     h2 { margin: 0 0 18px; font-size: clamp(2rem, 5vw, 4rem); letter-spacing: -0.06em; }
     p { color: var(--muted); line-height: 1.7; }
-    a { color: var(--green); font-weight: 700; }
+    a { color: var(--cyan); font-weight: 700; }
 
     @media (max-width: 760px) { grid-template-columns: 1fr; }
 `;
+
+const BuildLog = () => {
+    const [openId, setOpenId] = useState<string>(`${experience[0].company}-${experience[0].period}`);
+
+    return (
+        <LogList>
+            {experience.map((item) => {
+                const id = `${item.company}-${item.period}`;
+                const open = openId === id;
+                return (
+                    <LogItem key={id} $open={open}>
+                        <LogHeader
+                            type="button"
+                            aria-expanded={open}
+                            onClick={() => setOpenId(open ? "" : id)}
+                        >
+                            <LogDate>{item.period}</LogDate>
+                            <LogSummary>
+                                <h3>{item.title} · {item.company}</h3>
+                                {!open && <p>{item.description}</p>}
+                            </LogSummary>
+                            <LogToggle $open={open} aria-hidden>{open ? "[-]" : "[+]"}</LogToggle>
+                        </LogHeader>
+                        <LogBody $open={open}>
+                            <LogAccent>{item.accent}</LogAccent>
+                            <p style={{ margin: 0, color: "var(--text-soft)", lineHeight: 1.7 }}>{item.description}</p>
+                            <BulletList>
+                                {item.bullets.map((bullet) => (
+                                    <li key={bullet}>{bullet}</li>
+                                ))}
+                            </BulletList>
+                        </LogBody>
+                    </LogItem>
+                );
+            })}
+        </LogList>
+    );
+};
 
 const App = () => {
     return (
@@ -484,7 +641,7 @@ const App = () => {
                     <NavLinks>
                         <a href="#work">work</a>
                         <a href="#stack">stack</a>
-                        <a href="#timeline">timeline</a>
+                        <a href="#timeline">build log</a>
                         <a href="#contact">contact</a>
                     </NavLinks>
                 </Topbar>
@@ -492,14 +649,14 @@ const App = () => {
                 <TerminalShell id="top">
                     <TerminalChrome>
                         <Dots><span /><span /><span /></Dots>
-                        <span>ssh portfolio@shravan --mode=builder</span>
+                        <span>ssh portfolio@shravan --theme=tokyo-night</span>
                         <span>status: online</span>
                     </TerminalChrome>
                     <Hero>
                         <div>
                             <Prompt><span>$</span> cat ./profile/intro.md</Prompt>
                             <Title>{profile.displayName}</Title>
-                            <Role>{profile.role} · distributed systems builder</Role>
+                            <Role>{profile.role}</Role>
                             <Lead>{profile.summary}</Lead>
                             <ActionRow>
                                 <Button $primary href="#work">View shipped systems</Button>
@@ -530,7 +687,7 @@ const App = () => {
                 <Section id="work">
                     <SectionHeader>
                         <h2>Shipped systems</h2>
-                        <p>Portfolio-style case studies focused on what was built, why it mattered, and the engineering decisions behind reliable production systems.</p>
+                        <p>Production case studies — what shipped, why it mattered, and the engineering choices behind each system.</p>
                     </SectionHeader>
                     <ProjectGrid>
                         {projects.map((project) => (
@@ -555,7 +712,7 @@ const App = () => {
                 <Section id="stack">
                     <SectionHeader>
                         <h2>Operating system</h2>
-                        <p>The technologies and engineering instincts behind the work: distributed systems, evented services, observability, and cloud-native operations.</p>
+                        <p>Languages, platforms, and practices I use to design and operate reliable distributed backends.</p>
                     </SectionHeader>
                     <Toolkit>
                         <SkillPanel>
@@ -576,20 +733,9 @@ const App = () => {
                 <Section id="timeline">
                     <SectionHeader>
                         <h2>Build log</h2>
-                        <p>A concise timeline of roles and ownership areas. The details support the portfolio rather than replacing it.</p>
+                        <p>Compressed role history — expand an entry for the full resume bullets and ownership notes.</p>
                     </SectionHeader>
-                    <Timeline>
-                        {experience.map((item) => (
-                            <TimelineItem key={`${item.company}-${item.period}`}>
-                                <DateBlock>{item.period}</DateBlock>
-                                <div>
-                                    <Kicker>{item.accent}</Kicker>
-                                    <h3>{item.title} · {item.company}</h3>
-                                    <p>{item.description}</p>
-                                </div>
-                            </TimelineItem>
-                        ))}
-                    </Timeline>
+                    <BuildLog />
                 </Section>
 
                 <Footer id="contact">
@@ -597,7 +743,7 @@ const App = () => {
                         <div>
                             <Kicker>contact</Kicker>
                             <h2>Have a backend problem worth solving?</h2>
-                            <p>Reach me at <a href={`mailto:${profile.email}`}>{profile.email}</a>, call {profile.phone}, or connect on <a href={profile.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>.</p>
+                            <p>Email <a href={`mailto:${profile.email}`}>{profile.email}</a>, call {profile.phone}, or connect on <a href={profile.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>.</p>
                         </div>
                         <div>
                             <Kicker>extras</Kicker>

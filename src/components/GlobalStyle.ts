@@ -14,8 +14,8 @@ const GlobalStyle = createGlobalStyle`
         min-height: 100%;
         margin: 0;
         font-family: Inter, Ubuntu, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: #08111f;
-        color: #f8fafc;
+        background: #05050a;
+        color: #c0caf5;
         -webkit-font-smoothing: antialiased;
         text-rendering: optimizeLegibility;
     }
@@ -28,7 +28,8 @@ const GlobalStyle = createGlobalStyle`
     }
 
     ::selection {
-        background: rgba(94, 234, 212, 0.35);
+        background: rgba(255, 0, 124, 0.35);
+        color: #c0caf5;
     }
 `;
 

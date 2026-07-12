@@ -10,20 +10,20 @@ export const profile = {
     github: "https://github.com/shravan26",
     medium: "https://medium.com/@shravan_75948",
     summary:
-        "Backend focused Software Engineer with 5+ years building and scaling distributed systems using Node.js, TypeScript, Kubernetes, and event-driven architectures. Proven in latency reduction, cost optimization, observability, and dependable platform delivery.",
+        "Backend-focused software engineer with 5+ years building and scaling distributed systems using Node.js, TypeScript, Kubernetes (EKS), and event-driven architectures. Proven in latency reduction, cost optimization, and delivering reliable, observable platforms through IaC and automation.",
 };
 
 export const highlights = [
-    "Reduced backend effort for new commerce flows from 12-15 engineering days to 4-5 days with strategy-based abstractions.",
-    "Lowered p95 order latency from ~900-950 ms to ~550-600 ms by moving heavy request-path work to BullMQ workers.",
+    "Reduced backend effort for new commerce flows from 12–15 engineering days to 4–5 days with strategy-based abstractions.",
+    "Lowered p95 order latency from ~900–950 ms to ~550–600 ms by moving heavy request-path work to BullMQ workers.",
     "Cut monthly cloud spend by ~56% with targeted ElastiCache caching, MongoDB Atlas Search tuning, and centralized Loki/Grafana logging.",
 ];
 
 export const stats = [
     { value: "5+", label: "years scaling systems" },
-    { value: "~70%", label: "backend effort reduction" },
+    { value: "~70%", label: "backend effort cut" },
     { value: "~56%", label: "cloud cost reduction" },
-    { value: "99%", label: "availability target owned" },
+    { value: "99%", label: "availability target" },
 ];
 
 export const competencies = [
@@ -67,52 +67,61 @@ export const experience = [
     {
         company: "Mrmed",
         title: "Lead Backend Engineer",
-        period: "08/2024 - Present",
+        period: "08/2024 – Present",
         accent: "E-commerce healthcare systems",
         description:
-            "Architected strategy-based abstractions across cart, checkout, and coupon domains, moved expensive workloads into asynchronous workers, and owned EKS platform operations with Helm-based deployments and GitHub Actions CI/CD.",
+            "Lead backend ownership across commerce domains, event-driven workflows, analytics APIs, and the AWS EKS platform.",
         bullets: [
-            "Reduced new backend flow effort from 12-15 engineering days to 4-5 days.",
-            "Reduced p95 order latency from ~900-950 ms to ~550-600 ms and p99 from ~1.2-1.3 s to ~800-850 ms.",
-            "Built high-performance ClickHouse analytics APIs with sub-second SQL execution.",
+            "Architected strategy-based abstractions for cart, checkout, and coupon domains, reducing backend effort per new flow from 12–15 engineering days to 4–5 days (~70% reduction).",
+            "Offloaded heavy request-path work to asynchronous BullMQ workers, lowering p95 order latency from ~900–950 ms to ~550–600 ms and p99 from ~1.2–1.3 s to ~800–850 ms.",
+            "Decoupled persistence and downstream event publication, cutting end-to-end order processing from ~1.5–1.8 s to ~600–700 ms (~60% reduction).",
+            "Cut monthly cloud spend by ~56% through ElastiCache caching, MongoDB Atlas Search tuning, and centralized Loki/Grafana logging.",
+            "Consolidated fragmented microservices into a modular NestJS monolith, reducing maintenance overhead and accelerating feature delivery.",
+            "Designed SNS/SQS workflows to decouple order and fulfillment, improving reliability and failure isolation.",
+            "Built high-performance ClickHouse analytics APIs with sub-second SQL for business metrics.",
+            "Owned AWS EKS operations — cluster provisioning, autoscaling production nodes, Helm deployments, and GitHub Actions CI/CD — against a 99% availability target.",
         ],
     },
     {
         company: "Fleet Studio",
-        title: "Software Development Engineer II (Full time / Contract)",
-        period: "10/2023 - 08/2024",
+        title: "Software Development Engineer II",
+        period: "10/2023 – 08/2024",
         accent: "Serverless platforms",
         description:
-            "Built and operated serverless microservices with AWS SAM and CDK, hardened authentication with Cognito and Lambda authorizers, and shipped document ingestion pipelines using Amazon Textract and OpenAI.",
+            "Built and operated serverless microservices with AWS SAM/CDK, Cognito-secured APIs, and document intelligence pipelines.",
         bullets: [
-            "Improved pipeline robustness and data quality for noisy vaccination records.",
-            "Standardized reproducible deployments and environment parity with IaC.",
-            "Recognized as Employee of the Month for operational improvements.",
+            "Built and operated serverless microservices with AWS SAM and CDK for reproducible deployments and environment parity.",
+            "Implemented a document ingestion pipeline with Amazon Textract and OpenAI to structure noisy vaccination records.",
+            "Hardened API security with Amazon Cognito and Lambda authorizers across services.",
+            "Recognized as Employee of the Month for core pipeline delivery and operational improvements.",
         ],
     },
     {
         company: "Fibonalabs",
         title: "Senior Node.js Developer (SDE2)",
-        period: "01/2023 - 10/2023",
+        period: "01/2023 – 10/2023",
         accent: "Enterprise integrations",
         description:
-            "Designed a service layer for SAP Business One enterprise data synchronization, optimized MySQL and MongoDB to Kafka pipelines, and mentored two engineers while introducing TDD practices.",
+            "Delivered SAP Business One integrations, high-traffic data pipelines, and TDD practices while mentoring engineers.",
         bullets: [
-            "Improved response times and downstream throughput for high-traffic operations.",
-            "Introduced TDD practices to improve test coverage, code quality, and maintainability.",
+            "Designed a service layer for SAP Business One to enable reliable enterprise data synchronization.",
+            "Optimized MySQL and MongoDB to Kafka pipelines for better response times and downstream throughput.",
+            "Mentored two engineers and introduced TDD to improve coverage, quality, and maintainability.",
         ],
     },
     {
         company: "Neos Healthtech",
         title: "CTO & Co-Founder",
-        period: "10/2020 - 01/2023",
+        period: "10/2020 – 01/2023",
         accent: "Radiology infrastructure",
         description:
-            "Architected an asynchronous radiology backend on AWS EC2/S3, integrated AI inference models, led a cross-functional engineering and AI team, and migrated the platform toward event-driven microservices with RabbitMQ.",
+            "Founded and led architecture for an asynchronous radiology platform spanning ingestion, AI workflows, and event-driven services.",
         bullets: [
-            "Delivered ~99.9% uptime for core ingestion and processing APIs.",
-            "Scaled onboarding to ~10-12 diagnostic centers processing hundreds of imaging studies per day.",
-            "Built AI-assisted voice annotation workflows for radiology reporting.",
+            "Architected an asynchronous radiology backend on AWS EC2/S3 with ~99.9% uptime for core ingestion and processing APIs.",
+            "Integrated third-party AI inference models and built AI-assisted voice annotation for radiology reporting.",
+            "Scaled onboarding to ~10–12 diagnostic centers processing hundreds of imaging studies per day.",
+            "Hired and led a cross-functional engineering and AI team, owning architecture, infrastructure, and delivery.",
+            "Migrated from a monolith to event-driven microservices with RabbitMQ for durable background processing.",
         ],
     },
 ];
@@ -122,7 +131,7 @@ export const projects = [
         name: "RabbitMQ Node.js Infrastructure Library",
         category: "Infrastructure library",
         description:
-            "A production-grade RabbitMQ wrapper that standardizes producer/consumer patterns, trims boilerplate by ~40%, and adds predictable resiliency through custom retry logic and Dead Letter Exchanges.",
+            "Production-grade RabbitMQ wrapper that standardizes producer/consumer patterns, cuts boilerplate by ~40%, and adds predictable resiliency through custom retry logic and Dead Letter Exchanges.",
         impact: "Standardized durable messaging patterns for event-driven services.",
         stack: ["Node.js", "RabbitMQ", "TypeScript", "DLX", "Retry orchestration"],
         links: [],
@@ -137,8 +146,8 @@ export const projects = [
         name: "Scalable Social Media Engine",
         category: "Distributed backend",
         description:
-            "A Node.js and PostgreSQL social platform backend that resolved N+1 query issues with Dataloader, maintained distributed sessions in Redis, and preserved transactional integrity with TypeORM.",
-        impact: "Improved API response times and database load under multi-container deployments.",
+            "Node.js and PostgreSQL social platform backend that fixed N+1 queries with Dataloader, kept distributed sessions in Redis, and preserved transactional integrity with TypeORM across multi-container deployments.",
+        impact: "Improved API response times and reduced database load under multi-container deployments.",
         stack: ["Node.js", "PostgreSQL", "Redis", "TypeORM", "Dataloader"],
         links: ["https://github.com/shravan26/FS-RedditClone"],
         g_link: ["https://github.com/shravan26/FS-RedditClone"],
@@ -152,8 +161,8 @@ export const projects = [
         name: "Radiology AI Platform",
         category: "Healthcare product",
         description:
-            "An AI-assisted radiology workflow with asynchronous ingestion, DICOM processing, S3-backed storage, voice annotation, reporting workflows, and third-party model integrations.",
-        impact: "Processed hundreds of imaging studies per day across ~10-12 diagnostic centers.",
+            "AI-assisted radiology workflow with asynchronous ingestion, DICOM processing, S3-backed storage, voice annotation, reporting, and third-party model integrations.",
+        impact: "Processed hundreds of imaging studies per day across ~10–12 diagnostic centers.",
         stack: ["AWS EC2/S3", "RabbitMQ", "Node.js", "DICOM", "AI inference"],
         links: [],
         g_link: [],
@@ -167,7 +176,7 @@ export const projects = [
         name: "Serverless Document Intelligence Pipeline",
         category: "AWS automation",
         description:
-            "A document ingestion system using Amazon Textract and OpenAI to structure noisy vaccination records, with reproducible serverless deployments through AWS SAM and CDK.",
+            "Document ingestion system using Amazon Textract and OpenAI to structure noisy vaccination records, with reproducible serverless deployments through AWS SAM and CDK.",
         impact: "Improved operational reliability and document data quality.",
         stack: ["AWS Lambda", "SAM", "CDK", "Textract", "OpenAI", "Cognito"],
         links: [],
