@@ -32,14 +32,14 @@ const glowPulse = keyframes`
 `;
 
 const Page = styled.main`
-    --bg: #08080f;
-    --bg-deep: #05050a;
-    --panel: rgba(12, 13, 24, 0.94);
-    --panel-soft: rgba(16, 17, 32, 0.82);
-    --line: rgba(125, 249, 255, 0.14);
-    --line-strong: rgba(255, 0, 124, 0.38);
-    --cyan: #7df9ff;
-    --magenta: #ff007c;
+    --bg: #06060c;
+    --bg-deep: #040408;
+    --panel: rgba(14, 12, 26, 0.94);
+    --panel-soft: rgba(18, 16, 34, 0.82);
+    --line: rgba(187, 154, 247, 0.16);
+    --line-strong: rgba(157, 124, 255, 0.42);
+    --cyan: #9d7cff;
+    --magenta: #bb9af7;
     --blue: #7aa2f7;
     --violet: #bb9af7;
     --amber: #e0af68;
@@ -52,10 +52,10 @@ const Page = styled.main`
     min-height: 100vh;
     color: var(--text);
     background:
-        radial-gradient(circle at 12% 0%, rgba(255, 0, 124, 0.12), transparent 28rem),
-        radial-gradient(circle at 88% 18%, rgba(125, 249, 255, 0.1), transparent 30rem),
-        radial-gradient(circle at 50% 110%, rgba(122, 162, 247, 0.08), transparent 34rem),
-        linear-gradient(180deg, #0a0a14 0%, #08080f 45%, #05050a 100%);
+        radial-gradient(circle at 14% 0%, rgba(187, 154, 247, 0.14), transparent 28rem),
+        radial-gradient(circle at 88% 16%, rgba(157, 124, 255, 0.1), transparent 30rem),
+        radial-gradient(circle at 50% 110%, rgba(122, 162, 247, 0.07), transparent 34rem),
+        linear-gradient(180deg, #0a0a14 0%, #06060c 48%, #040408 100%);
     position: relative;
     overflow: hidden;
 
@@ -65,8 +65,8 @@ const Page = styled.main`
         inset: 0;
         pointer-events: none;
         background:
-            linear-gradient(rgba(125, 249, 255, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 0, 124, 0.025) 1px, transparent 1px);
+            linear-gradient(rgba(187, 154, 247, 0.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(157, 124, 255, 0.03) 1px, transparent 1px);
         background-size: 100% 3px, 48px 100%;
         mix-blend-mode: screen;
         z-index: 1;
@@ -81,8 +81,8 @@ const Page = styled.main`
         background: linear-gradient(
             to bottom,
             transparent,
-            rgba(125, 249, 255, 0.05),
-            rgba(255, 0, 124, 0.04),
+            rgba(187, 154, 247, 0.05),
+            rgba(157, 124, 255, 0.04),
             transparent
         );
         animation: ${scan} 8s linear infinite;
@@ -94,14 +94,14 @@ const MatrixBackdrop = styled.div`
     position: fixed;
     inset: 0;
     pointer-events: none;
-    opacity: 0.22;
+    opacity: 0.2;
     z-index: 0;
     background-image:
-        linear-gradient(180deg, rgba(255, 0, 124, 0.14), transparent 40%),
+        linear-gradient(180deg, rgba(187, 154, 247, 0.12), transparent 40%),
         repeating-linear-gradient(
             90deg,
             transparent 0 52px,
-            rgba(125, 249, 255, 0.1) 52px 53px,
+            rgba(157, 124, 255, 0.1) 52px 53px,
             transparent 53px 104px
         );
     background-size: 100% 80px, 100% 100%;
@@ -124,12 +124,12 @@ const Topbar = styled.nav`
 `;
 
 const Brand = styled.a`
-    color: var(--cyan);
+    color: var(--magenta);
     text-decoration: none;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     font-weight: 700;
-    text-shadow: 0 0 18px rgba(125, 249, 255, 0.35);
+    text-shadow: 0 0 18px rgba(187, 154, 247, 0.4);
 `;
 
 const NavLinks = styled.div`
@@ -150,11 +150,11 @@ const NavLinks = styled.div`
 
 const TerminalShell = styled.section`
     border: 1px solid var(--line-strong);
-    background: linear-gradient(180deg, rgba(14, 15, 28, 0.96), rgba(8, 8, 15, 0.96));
+    background: linear-gradient(180deg, rgba(16, 14, 28, 0.96), rgba(6, 6, 12, 0.96));
     box-shadow:
         0 30px 90px rgba(0, 0, 0, 0.65),
-        0 0 40px rgba(255, 0, 124, 0.08),
-        0 0 0 1px rgba(125, 249, 255, 0.04) inset;
+        0 0 40px rgba(187, 154, 247, 0.1),
+        0 0 0 1px rgba(187, 154, 247, 0.05) inset;
     border-radius: 18px;
     overflow: hidden;
 `;
@@ -215,7 +215,7 @@ const Title = styled.h1`
     line-height: 0.92;
     letter-spacing: -0.08em;
     color: var(--text);
-    text-shadow: 0 0 40px rgba(125, 249, 255, 0.12);
+    text-shadow: 0 0 40px rgba(187, 154, 247, 0.14);
 `;
 
 const Role = styled.h2`
@@ -224,7 +224,7 @@ const Role = styled.h2`
     font-family: "IBM Plex Mono", monospace;
     font-size: clamp(1rem, 2vw, 1.28rem);
     font-weight: 600;
-    text-shadow: 0 0 20px rgba(125, 249, 255, 0.25);
+    text-shadow: 0 0 20px rgba(157, 124, 255, 0.28);
 
     &::after {
         content: "_";
@@ -249,7 +249,7 @@ const ActionRow = styled.div`
 
 const Button = styled.a<{ $primary?: boolean }>`
     border: 1px solid ${(props) => (props.$primary ? "var(--magenta)" : "var(--line)")};
-    background: ${(props) => (props.$primary ? "rgba(255, 0, 124, 0.14)" : "rgba(125, 249, 255, 0.04)")};
+    background: ${(props) => (props.$primary ? "rgba(187, 154, 247, 0.14)" : "rgba(157, 124, 255, 0.05)")};
     color: ${(props) => (props.$primary ? "var(--magenta)" : "var(--text)")};
     border-radius: 10px;
     padding: 13px 16px;
@@ -257,14 +257,14 @@ const Button = styled.a<{ $primary?: boolean }>`
     font-family: "IBM Plex Mono", monospace;
     font-weight: 700;
     transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
-    box-shadow: ${(props) => (props.$primary ? "0 0 18px rgba(255, 0, 124, 0.2)" : "none")};
+    box-shadow: ${(props) => (props.$primary ? "0 0 18px rgba(187, 154, 247, 0.22)" : "none")};
 
     &:hover {
         transform: translateY(-2px);
-        background: rgba(125, 249, 255, 0.1);
+        background: rgba(157, 124, 255, 0.12);
         border-color: var(--cyan);
         color: var(--cyan);
-        box-shadow: 0 0 18px rgba(125, 249, 255, 0.18);
+        box-shadow: 0 0 18px rgba(157, 124, 255, 0.2);
     }
 `;
 
@@ -283,7 +283,7 @@ const CodeCard = styled.aside`
         top: -12px;
         left: 18px;
         padding: 2px 8px;
-        background: #08080f;
+        background: #06060c;
         color: var(--amber);
         font-size: 0.76rem;
         border: 1px solid rgba(224, 175, 104, 0.25);
@@ -313,7 +313,7 @@ const StatsBar = styled.div`
 `;
 
 const Stat = styled.div`
-    background: rgba(8, 8, 15, 0.96);
+    background: rgba(6, 6, 12, 0.96);
     padding: 20px;
 
     strong {
@@ -321,7 +321,7 @@ const Stat = styled.div`
         color: var(--cyan);
         font-size: clamp(1.8rem, 4vw, 2.7rem);
         line-height: 1;
-        text-shadow: 0 0 16px rgba(125, 249, 255, 0.25);
+        text-shadow: 0 0 16px rgba(157, 124, 255, 0.28);
     }
 
     span {
@@ -386,8 +386,8 @@ const ProjectCard = styled.article`
     &:hover {
         transform: translateY(-4px);
         border-color: var(--magenta);
-        background: rgba(18, 14, 28, 0.92);
-        box-shadow: 0 0 28px rgba(255, 0, 124, 0.12);
+        background: rgba(20, 16, 36, 0.94);
+        box-shadow: 0 0 28px rgba(187, 154, 247, 0.14);
     }
 
     h3 { margin: 0 0 12px; font-size: 1.45rem; }
@@ -417,7 +417,7 @@ const Chip = styled.span`
     padding: 7px 10px;
     font-family: "IBM Plex Mono", monospace;
     font-size: 0.78rem;
-    background: rgba(125, 249, 255, 0.03);
+    background: rgba(187, 154, 247, 0.04);
 `;
 
 const Links = styled.div`
@@ -451,7 +451,7 @@ const CompetencyList = styled.div`
         color: var(--text);
         padding: 11px 12px;
         background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(125, 249, 255, 0.08);
+        border: 1px solid rgba(187, 154, 247, 0.1);
         border-radius: 10px;
         font-family: "IBM Plex Mono", monospace;
     }
@@ -473,10 +473,10 @@ const LogList = styled.div`
 const LogItem = styled.article<{ $open: boolean }>`
     border: 1px solid ${(props) => (props.$open ? "var(--line-strong)" : "var(--line)")};
     border-radius: 14px;
-    background: ${(props) => (props.$open ? "rgba(18, 14, 28, 0.95)" : "var(--panel-soft)")};
+    background: ${(props) => (props.$open ? "rgba(20, 16, 36, 0.96)" : "var(--panel-soft)")};
     overflow: hidden;
     transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
-    box-shadow: ${(props) => (props.$open ? "0 0 24px rgba(255, 0, 124, 0.1)" : "none")};
+    box-shadow: ${(props) => (props.$open ? "0 0 24px rgba(187, 154, 247, 0.12)" : "none")};
 `;
 
 const LogHeader = styled.button`
@@ -538,7 +538,7 @@ const LogBody = styled.div<{ $open: boolean }>`
     display: ${(props) => (props.$open ? "grid" : "none")};
     gap: 12px;
     padding: 0 20px 20px;
-    border-top: 1px solid rgba(125, 249, 255, 0.08);
+    border-top: 1px solid rgba(187, 154, 247, 0.1);
     margin-top: -2px;
     padding-top: 16px;
 `;
@@ -570,7 +570,7 @@ const Footer = styled.footer`
 const ContactPanel = styled.div`
     border: 1px solid var(--line-strong);
     border-radius: 18px;
-    background: linear-gradient(180deg, rgba(18, 14, 28, 0.94), rgba(8, 8, 15, 0.96));
+    background: linear-gradient(180deg, rgba(20, 16, 36, 0.94), rgba(6, 6, 12, 0.96));
     padding: clamp(24px, 5vw, 48px);
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -649,7 +649,7 @@ const App = () => {
                 <TerminalShell id="top">
                     <TerminalChrome>
                         <Dots><span /><span /><span /></Dots>
-                        <span>ssh portfolio@shravan --theme=tokyo-night</span>
+                        <span>ssh portfolio@shravan --theme=void-violet</span>
                         <span>status: online</span>
                     </TerminalChrome>
                     <Hero>
