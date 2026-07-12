@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import styled, { keyframes } from "styled-components";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
+import styled, { css, keyframes } from "styled-components";
 import {
     competencies,
     education,
@@ -96,11 +96,277 @@ const neonFlicker = keyframes`
     70% { opacity: 0.6; }
 `;
 
+const introWarpFlash = keyframes`
+    0% { opacity: 0; }
+    25% { opacity: 0.9; }
+    100% { opacity: 0; }
+`;
+
+const introStreak = keyframes`
+    0% { transform: scaleY(0.2); opacity: 0; }
+    30% { opacity: 0.85; }
+    100% { transform: scaleY(1.8); opacity: 0; }
+`;
+
+const worldReveal = keyframes`
+    from {
+        opacity: 0;
+        filter: blur(6px);
+    }
+    to {
+        opacity: 1;
+        filter: blur(0);
+    }
+`;
+
+const navWarpPulse = keyframes`
+    0% { opacity: 0; }
+    18% { opacity: 1; }
+    100% { opacity: 0; }
+`;
+
+const BOOT_LINES = [
+    "> mount /dev/neon",
+    "> sync weather=rain city=tokyo",
+    "> load profile ./shravan",
+    "> calibrate portrait --mood=idle",
+    "> open gate --warp",
+];
+
+type IntroPhase = "boot" | "warp" | "done";
+
+const IntroOverlay = styled.div<{ $phase: IntroPhase }>`
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    background: #020208;
+    color: var(--text, #f5f7ff);
+    pointer-events: ${(props) => (props.$phase === "done" ? "none" : "auto")};
+    opacity: ${(props) => (props.$phase === "done" ? 0 : 1)};
+    transition: opacity 520ms ease;
+    overflow: hidden;
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+`;
+
+const IntroWarpFlash = styled.div<{ $active: boolean }>`
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at center, rgba(216, 180, 254, 0.55), transparent 48%),
+        linear-gradient(180deg, rgba(8, 8, 18, 0.2), rgba(2, 2, 8, 0.85));
+    opacity: 0;
+    animation: ${(props) => (props.$active ? introWarpFlash : "none")} 1.05s ease forwards;
+`;
+
+const IntroStreaks = styled.div<{ $active: boolean }>`
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: ${(props) => (props.$active ? 1 : 0)};
+    background: repeating-radial-gradient(
+        circle at center,
+        transparent 0 10px,
+        rgba(216, 180, 254, 0.08) 10px 11px
+    );
+    mix-blend-mode: screen;
+
+    &::before,
+    &::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 2px;
+        height: 100%;
+        background: linear-gradient(180deg, transparent, #d8b4fe, transparent);
+        transform-origin: center;
+        animation: ${(props) => (props.$active ? introStreak : "none")} 0.9s ease-out forwards;
+    }
+
+    &::before { margin-left: -18%; animation-delay: 40ms; }
+    &::after { margin-left: 14%; animation-delay: 120ms; width: 1px; }
+`;
+
+const IntroPanel = styled.div<{ $hidden: boolean }>`
+    position: relative;
+    z-index: 2;
+    width: min(520px, calc(100% - 40px));
+    border: 1px solid rgba(187, 154, 247, 0.45);
+    background: #06060e;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8), 0 24px 60px rgba(0, 0, 0, 0.65);
+    padding: 22px 22px 18px;
+    font-family: var(--font-mono, "IBM Plex Mono", monospace);
+    opacity: ${(props) => (props.$hidden ? 0 : 1)};
+    transform: ${(props) => (props.$hidden ? "scale(0.96) translateY(8px)" : "none")};
+    transition: opacity 280ms ease, transform 280ms ease;
+`;
+
+const IntroBrand = styled.div`
+    font-family: var(--font-pixel, "VT323", monospace);
+    font-size: 1.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #d8b4fe;
+    margin-bottom: 14px;
+    text-shadow: 0 0 16px rgba(187, 154, 247, 0.35);
+`;
+
+const IntroLog = styled.div`
+    display: grid;
+    gap: 6px;
+    min-height: 132px;
+    margin-bottom: 16px;
+    font-size: 0.82rem;
+    color: #b8c0dc;
+
+    span {
+        opacity: 0;
+        transform: translateY(4px);
+        transition: opacity 220ms ease, transform 220ms ease;
+    }
+
+    span[data-on="true"] {
+        opacity: 1;
+        transform: none;
+    }
+`;
+
+const IntroBar = styled.div`
+    height: 8px;
+    border: 1px solid rgba(187, 154, 247, 0.35);
+    background: rgba(0, 0, 0, 0.45);
+    padding: 1px;
+    image-rendering: pixelated;
+
+    i {
+        display: block;
+        height: 100%;
+        width: var(--p, 0%);
+        background: repeating-linear-gradient(
+            90deg,
+            #bb9af7 0 6px,
+            #9d7cff 6px 8px
+        );
+        transition: width 180ms linear;
+    }
+`;
+
+const IntroMeta = styled.div`
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+    font-size: 0.75rem;
+    color: #9aa3c7;
+`;
+
+const IntroSkip = styled.button`
+    margin-top: 14px;
+    border: 1px solid rgba(187, 154, 247, 0.3);
+    background: transparent;
+    color: #d7def5;
+    font: inherit;
+    font-size: 0.78rem;
+    padding: 8px 10px;
+    cursor: pointer;
+
+    &:hover {
+        border-color: #d8b4fe;
+        color: #d8b4fe;
+    }
+`;
+
+const sectionWarpOut = keyframes`
+    from {
+        transform: scale(1);
+    }
+    to {
+        transform: scale(1.02);
+    }
+`;
+
+const sectionWarpIn = keyframes`
+    from {
+        transform: scale(0.985);
+    }
+    to {
+        transform: scale(1);
+    }
+`;
+
+const WorldStage = styled.div<{ $ready: boolean; $warp: "idle" | "out" | "in" }>`
+    position: relative;
+    z-index: 5;
+    ${(props) => {
+        if (props.$warp === "out") {
+            return css`animation: ${sectionWarpOut} 280ms ease forwards;`;
+        }
+        if (props.$warp === "in") {
+            return css`animation: ${sectionWarpIn} 520ms cubic-bezier(0.16, 1, 0.3, 1) forwards;`;
+        }
+        if (props.$ready) {
+            return css`animation: ${worldReveal} 900ms cubic-bezier(0.16, 1, 0.3, 1) both;`;
+        }
+        return css`animation: none;`;
+    }}
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none !important;
+    }
+`;
+
+const NavWarpOverlay = styled.div<{ $active: boolean }>`
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    pointer-events: none;
+    opacity: ${(props) => (props.$active ? 1 : 0)};
+    transition: opacity 100ms ease;
+    background:
+        radial-gradient(circle at center, rgba(216, 180, 254, 0.28), transparent 52%),
+        #020208;
+
+    &::before,
+    &::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 2px;
+        height: 100%;
+        background: linear-gradient(180deg, transparent, #d8b4fe, transparent);
+        transform-origin: center;
+        opacity: 0;
+        animation: ${(props) => (props.$active ? introStreak : "none")} 0.85s ease-out forwards;
+    }
+
+    &::before { margin-left: -16%; }
+    &::after { margin-left: 12%; width: 1px; animation-delay: 60ms; }
+
+    > i {
+        position: absolute;
+        inset: 0;
+        background: repeating-radial-gradient(
+            circle at center,
+            transparent 0 10px,
+            rgba(216, 180, 254, 0.1) 10px 11px
+        );
+        mix-blend-mode: screen;
+        animation: ${(props) => (props.$active ? navWarpPulse : "none")} 0.85s ease-out forwards;
+    }
+`;
+
 const Page = styled.main`
     --bg: #06060c;
     --bg-deep: #040408;
-    --panel: rgba(10, 10, 18, 0.96);
-    --panel-soft: rgba(12, 12, 22, 0.94);
+    --panel: #0a0a12;
+    --panel-soft: #0c0c16;
     --line: rgba(187, 154, 247, 0.22);
     --line-strong: rgba(187, 154, 247, 0.5);
     --cyan: #c4b5fd;
@@ -141,7 +407,7 @@ const Page = styled.main`
             linear-gradient(90deg, rgba(157, 124, 255, 0.015) 1px, transparent 1px);
         background-size: 100% 4px, 4px 100%;
         mix-blend-mode: screen;
-        z-index: 3;
+        z-index: 2;
         opacity: 0.35;
     }
 
@@ -158,7 +424,7 @@ const Page = styled.main`
             transparent
         );
         animation: ${scan} 9s linear infinite;
-        z-index: 4;
+        z-index: 2;
     }
 `;
 
@@ -180,6 +446,7 @@ const PixelParallax = styled.div`
     animation: ${parallaxScroll} 70s linear infinite;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
+    opacity: 0.55;
 
     &::before,
     &::after {
@@ -187,7 +454,7 @@ const PixelParallax = styled.div`
         flex: 0 0 50%;
         height: 100%;
         background:
-            linear-gradient(180deg, rgba(4, 4, 8, 0.42) 0%, rgba(4, 4, 8, 0.35) 35%, rgba(4, 4, 8, 0.72) 100%),
+            linear-gradient(180deg, rgba(4, 4, 8, 0.62) 0%, rgba(4, 4, 8, 0.55) 35%, rgba(4, 4, 8, 0.88) 100%),
             url(/assets/generated/bg-16bit-tokyo-rain.png) center / cover no-repeat;
         image-rendering: pixelated;
         image-rendering: crisp-edges;
@@ -198,18 +465,19 @@ const NeonWash = styled.div`
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(ellipse 50% 40% at 20% 30%, rgba(187, 154, 247, 0.14), transparent 60%),
-        radial-gradient(ellipse 45% 35% at 78% 40%, rgba(157, 124, 255, 0.12), transparent 60%);
+        radial-gradient(ellipse 50% 40% at 20% 30%, rgba(187, 154, 247, 0.07), transparent 60%),
+        radial-gradient(ellipse 45% 35% at 78% 40%, rgba(157, 124, 255, 0.06), transparent 60%);
     animation: ${neonFlicker} 6s ease-in-out infinite;
     mix-blend-mode: screen;
+    opacity: 0.75;
 `;
 
 const Vignette = styled.div`
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(ellipse at center, transparent 28%, rgba(4, 4, 8, 0.62) 100%),
-        linear-gradient(180deg, rgba(4, 4, 8, 0.35), transparent 18%, transparent 68%, rgba(4, 4, 8, 0.78));
+        radial-gradient(ellipse at center, transparent 18%, rgba(4, 4, 8, 0.78) 100%),
+        linear-gradient(180deg, rgba(4, 4, 8, 0.55), transparent 16%, transparent 62%, rgba(4, 4, 8, 0.9));
 `;
 
 const RainLayer = styled.div<{ $frame: string }>`
@@ -217,7 +485,7 @@ const RainLayer = styled.div<{ $frame: string }>`
     inset: 0;
     z-index: 1;
     pointer-events: none;
-    opacity: 0.28;
+    opacity: 0.16;
     background-image: url(${(props) => props.$frame});
     background-repeat: repeat;
     background-size: 128px 128px;
@@ -229,7 +497,7 @@ const RainLayer = styled.div<{ $frame: string }>`
         content: "";
         position: absolute;
         inset: 0;
-        background: radial-gradient(ellipse at center, transparent 42%, rgba(4, 4, 8, 0.35) 100%);
+        background: radial-gradient(ellipse at center, transparent 36%, rgba(4, 4, 8, 0.5) 100%);
     }
 `;
 
@@ -237,7 +505,6 @@ const Shell = styled.div`
     width: min(1180px, calc(100% - 44px));
     margin: 0 auto;
     position: relative;
-    z-index: 5;
 
     @media (max-width: 560px) {
         width: min(1180px, calc(100% - 24px));
@@ -311,8 +578,7 @@ const NavLinks = styled.div`
 
 const TerminalShell = styled.section`
     border: 1px solid var(--line-strong);
-    background: linear-gradient(180deg, rgba(8, 8, 16, 0.96), rgba(5, 5, 12, 0.98));
-    backdrop-filter: blur(14px) saturate(1.1);
+    background: #080812;
     box-shadow:
         0 30px 90px rgba(0, 0, 0, 0.75),
         0 0 0 1px rgba(255, 255, 255, 0.04) inset;
@@ -326,7 +592,7 @@ const TerminalChrome = styled.div`
     gap: 18px;
     align-items: center;
     border-bottom: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.02);
+    background: #0c0c14;
     padding: 12px 16px;
     color: var(--muted);
     font-family: var(--font-mono);
@@ -475,7 +741,7 @@ const ActionRow = styled.div`
 
 const Button = styled.a<{ $primary?: boolean }>`
     border: 1px solid ${(props) => (props.$primary ? "var(--magenta)" : "var(--line)")};
-    background: ${(props) => (props.$primary ? "rgba(187, 154, 247, 0.14)" : "rgba(157, 124, 255, 0.05)")};
+    background: ${(props) => (props.$primary ? "rgba(187, 154, 247, 0.18)" : "#0a0a14")};
     color: ${(props) => (props.$primary ? "var(--magenta)" : "var(--text)")};
     border-radius: 10px;
     padding: 12px 16px;
@@ -500,7 +766,7 @@ const Button = styled.a<{ $primary?: boolean }>`
 
 const CodeCard = styled.aside`
     border: 1px solid var(--line-strong);
-    background: rgba(0, 0, 0, 0.45);
+    background: #05050a;
     border-radius: 14px;
     padding: 0;
     font-family: var(--font-mono);
@@ -520,7 +786,7 @@ const CodeCard = styled.aside`
         left: 12px;
         z-index: 2;
         padding: 3px 8px;
-        background: rgba(6, 6, 12, 0.88);
+        background: #06060c;
         color: var(--amber);
         font-family: var(--font-mono);
         font-size: 0.72rem;
@@ -605,10 +871,7 @@ const PortraitMeta = styled.div`
     margin-top: auto;
     padding: 12px 14px;
     border-top: 1px solid rgba(187, 154, 247, 0.2);
-    background: rgba(6, 6, 12, 0.9);
-    font-family: var(--font-mono);
-    font-size: 0.82rem;
-    color: var(--text-soft);
+    background: #06060c;
     line-height: 1.55;
 
     strong { color: var(--magenta); }
@@ -627,7 +890,7 @@ const StatsBar = styled.div`
 `;
 
 const Stat = styled.div`
-    background: rgba(6, 6, 12, 0.98);
+    background: #06060c;
     padding: 20px;
     min-width: 0;
 
@@ -732,7 +995,7 @@ const Ticker = styled.div`
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: 999px;
-    background: rgba(8, 8, 16, 0.92);
+    background: #080810;
     margin: 28px 0 8px;
     mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
 
@@ -776,7 +1039,7 @@ const ProjectGrid = styled.div`
 
 const ProjectCard = styled.article<{ $featured?: boolean }>`
     border: 1px solid var(--line);
-    background: linear-gradient(180deg, rgba(12, 12, 22, 0.97), rgba(8, 8, 16, 0.98));
+    background: #0c0c16;
     border-radius: 16px;
     padding: ${(props) => (props.$featured ? "28px" : "24px")};
     min-height: ${(props) => (props.$featured ? "280px" : "320px")};
@@ -792,7 +1055,7 @@ const ProjectCard = styled.article<{ $featured?: boolean }>`
     &:hover {
         transform: translateY(-6px) rotate(-0.2deg);
         border-color: var(--magenta);
-        background: linear-gradient(180deg, rgba(16, 14, 28, 0.98), rgba(10, 10, 20, 0.99));
+        background: #100e1c;
         box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
     }
 
@@ -880,7 +1143,7 @@ const Chip = styled.span`
     font-smooth: always;
     font-size: 0.88rem;
     letter-spacing: 0.03em;
-    background: rgba(8, 8, 16, 0.85);
+    background: #080810;
 `;
 
 const Links = styled.div`
@@ -911,7 +1174,7 @@ const Toolkit = styled.div`
 const SkillPanel = styled.div`
     border: 1px solid var(--line);
     border-radius: 16px;
-    background: linear-gradient(180deg, rgba(12, 12, 22, 0.97), rgba(8, 8, 16, 0.98));
+    background: #0c0c16;
     padding: 22px;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
     min-width: 0;
@@ -929,7 +1192,7 @@ const CompetencyList = styled.div`
     span {
         color: var(--text);
         padding: 11px 12px;
-        background: rgba(255, 255, 255, 0.02);
+        background: #0c0c16;
         border: 1px solid rgba(187, 154, 247, 0.1);
         border-radius: 10px;
         font-family: var(--font-mono);
@@ -961,8 +1224,7 @@ const LogList = styled.div`
     padding: 14px;
     border: 2px solid rgba(187, 154, 247, 0.45);
     border-radius: 6px;
-    background:
-        linear-gradient(180deg, rgba(10, 10, 20, 0.98), rgba(6, 6, 14, 0.99));
+    background: #0a0a14;
     box-shadow:
         0 0 0 1px rgba(0, 0, 0, 0.8) inset,
         0 0 0 4px rgba(8, 8, 16, 0.9),
@@ -1002,8 +1264,8 @@ const LogItem = styled.article<{ $open: boolean }>`
     border: 1px solid ${(props) => (props.$open ? "rgba(216, 180, 254, 0.7)" : "rgba(154, 163, 199, 0.28)")};
     border-radius: 4px;
     background: ${(props) => (props.$open
-        ? "linear-gradient(90deg, rgba(187, 154, 247, 0.16), rgba(10, 10, 20, 0.98) 28%)"
-        : "rgba(8, 8, 16, 0.95)")};
+        ? "linear-gradient(90deg, rgba(187, 154, 247, 0.16), #0a0a14 28%)"
+        : "#080810")};
     overflow: hidden;
     position: relative;
     clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
@@ -1072,7 +1334,7 @@ const LogSlot = styled.div<{ $open: boolean }>`
     display: grid;
     place-items: center;
     border: 1px solid ${(props) => (props.$open ? "#d8b4fe" : "rgba(154, 163, 199, 0.35)")};
-    background: ${(props) => (props.$open ? "rgba(187, 154, 247, 0.18)" : "rgba(0, 0, 0, 0.35)")};
+    background: ${(props) => (props.$open ? "rgba(187, 154, 247, 0.22)" : "#05050a")};
     color: ${(props) => (props.$open ? "#f1f5ff" : "var(--text-soft)")};
     font-size: 0.78rem;
     font-weight: 700;
@@ -1226,7 +1488,7 @@ const LogAccent = styled.div`
 const LogMeter = styled.div`
     height: 8px;
     border: 1px solid rgba(187, 154, 247, 0.35);
-    background: rgba(0, 0, 0, 0.45);
+    background: #05050a;
     padding: 1px;
     image-rendering: pixelated;
 
@@ -1293,7 +1555,7 @@ const Footer = styled.footer`
 const ContactPanel = styled.div`
     border: 1px solid var(--line-strong);
     border-radius: 18px;
-    background: linear-gradient(180deg, rgba(12, 12, 22, 0.97), rgba(6, 6, 14, 0.98));
+    background: #0c0c16;
     padding: clamp(20px, 5vw, 48px);
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1479,17 +1741,130 @@ const BuildLog = () => {
 };
 
 const App = () => {
+    const [introPhase, setIntroPhase] = useState<IntroPhase>("boot");
+    const [bootLine, setBootLine] = useState(0);
+    const [bootProgress, setBootProgress] = useState(8);
+    const [navWarping, setNavWarping] = useState(false);
+    const [contentWarp, setContentWarp] = useState<"idle" | "out" | "in">("idle");
+    const navWarpTimer = useRef<number>(0);
+    const worldReady = introPhase !== "boot";
+
+    const finishIntro = () => {
+        setIntroPhase("warp");
+        window.setTimeout(() => setIntroPhase("done"), 980);
+    };
+
+    const warpToSection = (href: string) => {
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const target = document.querySelector(href);
+
+        if (reduceMotion) {
+            target?.scrollIntoView({ behavior: "smooth", block: "start" });
+            return;
+        }
+
+        window.clearTimeout(navWarpTimer.current);
+        setNavWarping(true);
+        setContentWarp("out");
+
+        window.setTimeout(() => {
+            target?.scrollIntoView({ behavior: "auto", block: "start" });
+            setContentWarp("in");
+        }, 260);
+
+        navWarpTimer.current = window.setTimeout(() => {
+            setNavWarping(false);
+            setContentWarp("idle");
+        }, 900);
+    };
+
+    const onNavClick = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+        event.preventDefault();
+        warpToSection(href);
+        window.history.pushState(null, "", href);
+    };
+
+    useEffect(() => {
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduceMotion) {
+            setIntroPhase("done");
+            return;
+        }
+
+        if (introPhase !== "boot") return undefined;
+
+        const lineTimer = window.setInterval(() => {
+            setBootLine((current) => {
+                if (current >= BOOT_LINES.length - 1) {
+                    window.clearInterval(lineTimer);
+                    return current;
+                }
+                return current + 1;
+            });
+            setBootProgress((current) => Math.min(92, current + 18));
+        }, 420);
+
+        const warpTimer = window.setTimeout(() => {
+            setBootProgress(100);
+            finishIntro();
+        }, 420 * BOOT_LINES.length + 380);
+
+        return () => {
+            window.clearInterval(lineTimer);
+            window.clearTimeout(warpTimer);
+        };
+    }, [introPhase]);
+
+    useEffect(() => () => window.clearTimeout(navWarpTimer.current), []);
+
     return (
         <Page>
+            {introPhase !== "done" && (
+                <IntroOverlay $phase={introPhase} role="dialog" aria-label="Boot sequence">
+                    <IntroWarpFlash $active={introPhase === "warp"} aria-hidden />
+                    <IntroStreaks $active={introPhase === "warp"} aria-hidden />
+                    <IntroPanel $hidden={introPhase === "warp"}>
+                        <IntroBrand>~/shravan.dev</IntroBrand>
+                        <IntroLog>
+                            {BOOT_LINES.map((line, index) => (
+                                <span key={line} data-on={index <= bootLine ? "true" : "false"}>
+                                    {line}
+                                </span>
+                            ))}
+                        </IntroLog>
+                        <IntroBar style={{ ["--p" as string]: `${bootProgress}%` }}>
+                            <i />
+                        </IntroBar>
+                        <IntroMeta>
+                            <span>boot_seq // void-violet</span>
+                            <span>{bootProgress}%</span>
+                        </IntroMeta>
+                        <IntroSkip type="button" onClick={finishIntro}>
+                            skip_intro ▸
+                        </IntroSkip>
+                    </IntroPanel>
+                </IntroOverlay>
+            )}
+
+            <NavWarpOverlay $active={navWarping} aria-hidden>
+                <i />
+            </NavWarpOverlay>
+
             <AnimatedBackdrop />
-            <Shell>
+            <WorldStage $ready={worldReady} $warp={contentWarp}>
+                <Shell>
                 <Topbar aria-label="Primary navigation">
-                    <Brand href="#top">~/shravan.dev</Brand>
+                    <Brand
+                        href="#top"
+                        onClick={(event) => onNavClick(event, "#top")}
+                    >
+                        ~/shravan.dev
+                    </Brand>
                     <NavLinks>
-                        <a href="#work">work</a>
-                        <a href="#stack">stack</a>
-                        <a href="#timeline">build log</a>
-                        <a href="#contact">contact</a>
+                        <a href="#work" onClick={(event) => onNavClick(event, "#work")}>work</a>
+                        <a href="#stack" onClick={(event) => onNavClick(event, "#stack")}>stack</a>
+                        <a href="#timeline" onClick={(event) => onNavClick(event, "#timeline")}>build log</a>
+                        <a href="#contact" onClick={(event) => onNavClick(event, "#contact")}>contact</a>
                     </NavLinks>
                 </Topbar>
 
@@ -1607,6 +1982,7 @@ const App = () => {
                     </ContactPanel>
                 </Footer>
             </Shell>
+            </WorldStage>
         </Page>
     );
 };
