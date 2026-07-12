@@ -14,7 +14,7 @@ const GlobalStyle = createGlobalStyle`
     body {
         min-height: 100%;
         margin: 0;
-        font-family: "VT323", "IBM Plex Mono", monospace;
+        font-family: Inter, "IBM Plex Mono", system-ui, sans-serif;
         background: #040408;
         color: #f5f7ff;
         -webkit-font-smoothing: antialiased;

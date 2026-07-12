@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import {
     competencies,
@@ -19,6 +19,54 @@ const RAIN_FRAMES = [
 ];
 
 const RAIN_TICK_MS = 400;
+
+const PORTRAIT_NEUTRAL = "/assets/generated/portrait/frame-00.png";
+const PORTRAIT_SMILE = "/assets/generated/portrait/frame-06.png";
+const PORTRAIT_CACHE_BUST = "idle6";
+
+/** Idle loop — mostly smiling; rare decisive expression beats (no mid-mouth blend). */
+const PORTRAIT_CYCLE_MS = 10000;
+
+const easeInOutCubic = (t: number) =>
+    (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+/**
+ * Timeline drives a logical expression 1=smile … 0=neutral.
+ * We never linger in the ghost zone where both mouths are visible.
+ */
+const expressionAt = (phase: number) => {
+    // 0.00–0.58  smile
+    // 0.58–0.64  snap toward neutral
+    // 0.64–0.72  hold neutral
+    // 0.72–0.78  snap back to smile
+    // 0.78–1.00  smile
+    const segments: Array<{ end: number; from: number; to: number }> = [
+        { end: 0.58, from: 1, to: 1 },
+        { end: 0.64, from: 1, to: 0 },
+        { end: 0.72, from: 0, to: 0 },
+        { end: 0.78, from: 0, to: 1 },
+        { end: 1, from: 1, to: 1 },
+    ];
+
+    let start = 0;
+    for (const segment of segments) {
+        if (phase <= segment.end) {
+            const span = segment.end - start;
+            const u = span <= 0 ? 1 : (phase - start) / span;
+            const e = easeInOutCubic(Math.min(1, Math.max(0, u)));
+            return segment.from + (segment.to - segment.from) * e;
+        }
+        start = segment.end;
+    }
+    return 1;
+};
+
+/** Collapse mid-blend so an open mouth never shows through a closed one. */
+const neutralOpacityFromExpression = (expression: number) => {
+    if (expression >= 0.55) return 0;
+    if (expression <= 0.45) return 1;
+    return 1 - (expression - 0.45) / 0.1;
+};
 
 const caret = keyframes`
     0%, 45% { opacity: 1; }
@@ -66,8 +114,9 @@ const Page = styled.main`
     --text-soft: #d5dcf5;
     --muted: #a4adc9;
     --font-pixel: "VT323", "IBM Plex Mono", monospace;
-    --font-body: "VT323", "IBM Plex Mono", monospace;
-    --font-display: "VT323", "IBM Plex Mono", monospace;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+    --font-body: Inter, "IBM Plex Mono", system-ui, sans-serif;
+    --font-display: Inter, system-ui, sans-serif;
 
     min-height: 100vh;
     color: var(--text);
@@ -75,11 +124,12 @@ const Page = styled.main`
     position: relative;
     overflow: hidden;
     font-family: var(--font-body);
-    font-size: 1.2rem;
-    line-height: 1.65;
+    font-size: 1.05rem;
+    line-height: 1.7;
     -webkit-font-smoothing: antialiased;
-    font-smooth: always;
-    letter-spacing: 0.02em;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    letter-spacing: 0;
 
     &::before {
         content: "";
@@ -200,10 +250,10 @@ const Topbar = styled.nav`
     justify-content: space-between;
     gap: 16px;
     padding: 24px 0;
-    font-family: var(--font-pixel);
-    font-size: 1.15rem;
-    -webkit-font-smoothing: none;
-    font-smooth: never;
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
 
     @media (max-width: 720px) {
         flex-direction: column;
@@ -216,9 +266,12 @@ const Topbar = styled.nav`
 const Brand = styled.a`
     color: var(--magenta);
     text-decoration: none;
-    letter-spacing: 0.08em;
+    font-family: var(--font-pixel);
+    font-size: 1.35rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    font-weight: 700;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65), 0 0 14px rgba(187, 154, 247, 0.25);
     white-space: nowrap;
 `;
@@ -276,10 +329,10 @@ const TerminalChrome = styled.div`
     background: rgba(255, 255, 255, 0.02);
     padding: 12px 16px;
     color: var(--muted);
-    font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
-    font-size: 1.05rem;
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
+    font-size: 0.88rem;
 
     > span:nth-of-type(1) {
         min-width: 0;
@@ -336,8 +389,8 @@ const Hero = styled.div`
 const Prompt = styled.div`
     color: var(--magenta);
     font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
     font-size: 1.2rem;
     margin-bottom: 20px;
     overflow-wrap: anywhere;
@@ -355,10 +408,10 @@ const Title = styled.h1`
     margin: 0;
     max-width: 860px;
     font-family: var(--font-display);
-    font-size: clamp(2.8rem, 12vw, 7.2rem);
-    font-weight: 400;
-    line-height: 0.95;
-    letter-spacing: 0.02em;
+    font-size: clamp(2.6rem, 10vw, 6.4rem);
+    font-weight: 800;
+    line-height: 0.94;
+    letter-spacing: -0.055em;
     color: var(--text);
     -webkit-font-smoothing: antialiased;
     font-smooth: always;
@@ -369,12 +422,12 @@ const Title = styled.h1`
 const Role = styled.h2`
     margin: 24px 0 18px;
     color: #e9d5ff;
-    font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
-    font-size: clamp(1.15rem, 2.8vw, 1.55rem);
-    font-weight: 400;
-    letter-spacing: 0.04em;
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
+    font-size: clamp(0.98rem, 2vw, 1.2rem);
+    font-weight: 600;
+    letter-spacing: 0.02em;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7), 0 0 14px rgba(187, 154, 247, 0.2);
     overflow-wrap: anywhere;
 
@@ -393,7 +446,7 @@ const Lead = styled.p`
     color: var(--text-soft);
     max-width: 740px;
     font-family: var(--font-body);
-    font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+    font-size: clamp(1.02rem, 2vw, 1.18rem);
     font-weight: 400;
     line-height: 1.7;
     letter-spacing: 0.03em;
@@ -428,8 +481,8 @@ const Button = styled.a<{ $primary?: boolean }>`
     padding: 12px 16px;
     text-decoration: none;
     font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
     font-size: 1.15rem;
     font-weight: 400;
     letter-spacing: 0.04em;
@@ -450,9 +503,9 @@ const CodeCard = styled.aside`
     background: rgba(0, 0, 0, 0.45);
     border-radius: 14px;
     padding: 0;
-    font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
     min-height: 100%;
     position: relative;
     overflow: hidden;
@@ -461,7 +514,7 @@ const CodeCard = styled.aside`
     box-shadow: 0 0 32px rgba(187, 154, 247, 0.12);
 
     &::before {
-        content: "viewer ./identity.px --tty";
+        content: "viewer ./identity.png --tty";
         position: absolute;
         top: 12px;
         left: 12px;
@@ -469,7 +522,8 @@ const CodeCard = styled.aside`
         padding: 3px 8px;
         background: rgba(6, 6, 12, 0.88);
         color: var(--amber);
-        font-size: 0.95rem;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
         border: 1px solid rgba(224, 175, 104, 0.25);
         border-radius: 4px;
         max-width: calc(100% - 24px);
@@ -481,7 +535,7 @@ const CodeCard = styled.aside`
     @media (max-width: 480px) {
         &::before {
             font-size: 0.85rem;
-            content: "viewer ./identity.px";
+            content: "viewer ./identity.png";
         }
     }
 `;
@@ -489,13 +543,41 @@ const CodeCard = styled.aside`
 const PortraitImage = styled.img`
     display: block;
     width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+`;
+
+const PortraitFaceLayer = styled(PortraitImage)`
+    /* Keep the swap face-focused, but transitions are near-binary to avoid ghost mouths. */
+    -webkit-mask-image: radial-gradient(
+        ellipse 62% 56% at 50% 36%,
+        #000 0%,
+        #000 52%,
+        rgba(0, 0, 0, 0.65) 72%,
+        transparent 90%
+    );
+    mask-image: radial-gradient(
+        ellipse 62% 56% at 50% 36%,
+        #000 0%,
+        #000 52%,
+        rgba(0, 0, 0, 0.65) 72%,
+        transparent 90%
+    );
+`;
+
+const PortraitStage = styled.div`
+    position: relative;
     flex: 1;
     min-height: clamp(240px, 58vw, 420px);
     max-height: 520px;
-    object-fit: cover;
-    object-position: center top;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
+    overflow: hidden;
+    background: #05050a;
+
+    ${PortraitImage} {
+        position: absolute;
+        inset: 0;
+    }
 
     @media (max-width: 920px) {
         max-height: 420px;
@@ -509,11 +591,11 @@ const PortraitScan = styled.div`
     pointer-events: none;
     z-index: 1;
     background:
-        linear-gradient(180deg, rgba(187, 154, 247, 0.1), transparent 24%, transparent 70%, rgba(6, 6, 12, 0.5)),
+        linear-gradient(180deg, rgba(187, 154, 247, 0.08), transparent 24%, transparent 68%, rgba(6, 6, 12, 0.55)),
         repeating-linear-gradient(
             180deg,
             transparent 0 3px,
-            rgba(157, 124, 255, 0.04) 3px 4px
+            rgba(157, 124, 255, 0.035) 3px 4px
         );
 `;
 
@@ -524,7 +606,8 @@ const PortraitMeta = styled.div`
     padding: 12px 14px;
     border-top: 1px solid rgba(187, 154, 247, 0.2);
     background: rgba(6, 6, 12, 0.9);
-    font-size: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
     color: var(--text-soft);
     line-height: 1.55;
 
@@ -553,7 +636,7 @@ const Stat = styled.div`
         font-family: var(--font-display);
         -webkit-font-smoothing: antialiased;
         font-smooth: always;
-        font-weight: 400;
+        font-weight: 800;
         color: #efe6ff;
         font-size: clamp(1.7rem, 4.5vw, 2.8rem);
         line-height: 1;
@@ -567,8 +650,8 @@ const Stat = styled.div`
         margin-top: 8px;
         color: var(--text-soft);
         font-family: var(--font-pixel);
-        -webkit-font-smoothing: none;
-        font-smooth: never;
+        -webkit-font-smoothing: antialiased;
+        font-smooth: always;
         font-size: 1.05rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
@@ -589,8 +672,8 @@ const Section = styled.section`
 const SectionPrompt = styled.div`
     color: #e9d5ff;
     font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
     font-size: 1.15rem;
     margin-bottom: 10px;
     letter-spacing: 0.03em;
@@ -610,10 +693,10 @@ const SectionHeader = styled.div`
     h2 {
         margin: 0;
         font-family: var(--font-display);
-        font-size: clamp(2.1rem, 8vw, 4.2rem);
-        font-weight: 400;
+        font-size: clamp(2rem, 7vw, 3.8rem);
+        font-weight: 800;
         line-height: 1;
-        letter-spacing: 0.02em;
+        letter-spacing: -0.045em;
         color: var(--text);
         -webkit-font-smoothing: antialiased;
         font-smooth: always;
@@ -624,10 +707,10 @@ const SectionHeader = styled.div`
         max-width: 540px;
         margin: 0;
         font-family: var(--font-body);
-        font-size: 1.2rem;
+        font-size: 1.02rem;
         color: var(--text-soft);
-        line-height: 1.65;
-        letter-spacing: 0.03em;
+        line-height: 1.7;
+        letter-spacing: 0;
         -webkit-font-smoothing: antialiased;
         font-smooth: always;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
@@ -666,8 +749,8 @@ const TickerTrack = styled.div`
     padding: 12px 0;
     animation: ${marquee} 28s linear infinite;
     font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
     font-size: 1.15rem;
     color: var(--text-soft);
 
@@ -716,9 +799,9 @@ const ProjectCard = styled.article<{ $featured?: boolean }>`
     h3 {
         margin: 0 0 10px;
         font-family: var(--font-display);
-        font-size: ${(props) => (props.$featured ? "2rem" : "1.55rem")};
-        font-weight: 400;
-        letter-spacing: 0.02em;
+        font-size: ${(props) => (props.$featured ? "1.75rem" : "1.35rem")};
+        font-weight: 700;
+        letter-spacing: -0.03em;
         color: var(--text);
         -webkit-font-smoothing: antialiased;
         font-smooth: always;
@@ -726,10 +809,10 @@ const ProjectCard = styled.article<{ $featured?: boolean }>`
     }
     p {
         font-family: var(--font-body);
-        font-size: 1.15rem;
+        font-size: 0.98rem;
         color: var(--text-soft);
-        line-height: 1.65;
-        letter-spacing: 0.02em;
+        line-height: 1.7;
+        letter-spacing: 0;
         -webkit-font-smoothing: antialiased;
         font-smooth: always;
     }
@@ -761,10 +844,10 @@ const ProjectCard = styled.article<{ $featured?: boolean }>`
 
 const ProjectHook = styled.p`
     color: var(--cyan) !important;
-    font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
-    font-size: 1.15rem;
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
+    font-size: 0.95rem;
     margin: 0 0 12px !important;
     letter-spacing: 0.02em;
 `;
@@ -772,8 +855,8 @@ const ProjectHook = styled.p`
 const Kicker = styled.div`
     color: var(--magenta);
     font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
     font-size: 1.1rem;
     margin-bottom: 12px;
     text-transform: uppercase;
@@ -792,10 +875,10 @@ const Chip = styled.span`
     border-radius: 999px;
     color: var(--text-soft);
     padding: 6px 10px;
-    font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
-    font-size: 1.05rem;
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
+    font-size: 0.88rem;
     letter-spacing: 0.03em;
     background: rgba(8, 8, 16, 0.85);
 `;
@@ -808,10 +891,10 @@ const Links = styled.div`
 
     a {
         color: var(--cyan);
-        font-family: var(--font-pixel);
-        -webkit-font-smoothing: none;
-        font-smooth: never;
-        font-size: 1.1rem;
+        font-family: var(--font-mono);
+        -webkit-font-smoothing: antialiased;
+        font-smooth: always;
+        font-size: 0.9rem;
         font-weight: 400;
         letter-spacing: 0.03em;
     }
@@ -849,10 +932,10 @@ const CompetencyList = styled.div`
         background: rgba(255, 255, 255, 0.02);
         border: 1px solid rgba(187, 154, 247, 0.1);
         border-radius: 10px;
-        font-family: var(--font-pixel);
-        -webkit-font-smoothing: none;
-        font-smooth: never;
-        font-size: 1.12rem;
+        font-family: var(--font-mono);
+        -webkit-font-smoothing: antialiased;
+        font-smooth: always;
+        font-size: 0.92rem;
         letter-spacing: 0.02em;
         transition: transform 220ms ease, border-color 220ms ease, color 220ms ease;
     }
@@ -869,7 +952,7 @@ const ToolGroup = styled.div`
     border-bottom: 1px solid var(--line);
 
     &:last-child { border-bottom: 0; }
-    h3 { margin: 0 0 10px; color: var(--amber); font-family: var(--font-pixel); -webkit-font-smoothing: none; font-smooth: never; font-size: 1.2rem; font-weight: 400; letter-spacing: 0.06em; }
+    h3 { margin: 0 0 10px; color: var(--amber); font-family: var(--font-mono); -webkit-font-smoothing: antialiased; font-size: 0.95rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
 `;
 
 const LogList = styled.div`
@@ -893,8 +976,8 @@ const LogList = styled.div`
         left: 16px;
         padding: 0 8px;
         font-family: var(--font-pixel);
-        -webkit-font-smoothing: none;
-        font-smooth: never;
+        -webkit-font-smoothing: antialiased;
+        font-smooth: always;
         font-size: 1rem;
         letter-spacing: 0.14em;
         color: #e9d5ff;
@@ -967,9 +1050,9 @@ const LogHeader = styled.button`
     text-align: left;
     cursor: pointer;
     padding: 16px 16px 16px 14px;
-    font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
     transition: background 220ms ease;
 
     &:hover {
@@ -1005,10 +1088,10 @@ const LogSlot = styled.div<{ $open: boolean }>`
 
 const LogDate = styled.div`
     color: #e9d5ff;
-    font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
-    font-size: 1.05rem;
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
+    font-size: 0.88rem;
     letter-spacing: 0.06em;
 
     @media (max-width: 760px) {
@@ -1019,9 +1102,9 @@ const LogDate = styled.div`
 const LogDateMobile = styled.div`
     display: none;
     color: #e9d5ff;
-    font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
     font-size: 0.95rem;
     letter-spacing: 0.06em;
     margin-bottom: 4px;
@@ -1036,14 +1119,14 @@ const LogSummary = styled.div`
 
     h3 {
         margin: 0 0 6px;
-        font-size: 1.2rem;
+        font-size: 1rem;
         color: var(--text);
-        font-family: var(--font-pixel);
-        -webkit-font-smoothing: none;
-        font-smooth: never;
-        letter-spacing: 0.02em;
+        font-family: var(--font-mono);
+        -webkit-font-smoothing: antialiased;
+        font-smooth: always;
+        letter-spacing: -0.01em;
         overflow-wrap: anywhere;
-        font-weight: 400;
+        font-weight: 600;
     }
 
     p {
@@ -1068,11 +1151,11 @@ const LogSummary = styled.div`
 `;
 
 const LogToggle = styled.span<{ $open: boolean }>`
-    font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
     color: ${(props) => (props.$open ? "#f0c674" : "#d8b4fe")};
-    font-size: 1.05rem;
+    font-size: 0.88rem;
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
@@ -1124,12 +1207,12 @@ const LogAccent = styled.div`
     gap: 8px;
     width: fit-content;
     color: #f0c674;
-    font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
-    font-size: 1rem;
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
+    font-size: 0.78rem;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     padding: 5px 8px;
     border: 1px solid rgba(240, 198, 116, 0.35);
     background: rgba(240, 198, 116, 0.08);
@@ -1163,9 +1246,9 @@ const LogMeter = styled.div`
 const LogMeterLabel = styled.div`
     display: flex;
     justify-content: space-between;
-    font-family: var(--font-pixel);
-    -webkit-font-smoothing: none;
-    font-smooth: never;
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
     font-size: 1rem;
     color: var(--text-soft);
     margin-bottom: 4px;
@@ -1189,8 +1272,8 @@ const BulletList = styled.ul`
         padding: 8px 10px 8px 28px;
         border: 1px solid rgba(154, 163, 199, 0.18);
         background: rgba(0, 0, 0, 0.28);
-        font-size: 1.1rem;
-        letter-spacing: 0.02em;
+        font-size: 0.95rem;
+        letter-spacing: 0;
 
         &::before {
             content: "◆";
@@ -1231,9 +1314,9 @@ const ContactPanel = styled.div`
     h2 {
         margin: 0 0 18px;
         font-family: var(--font-display);
-        font-size: clamp(2rem, 7vw, 3.8rem);
-        font-weight: 400;
-        letter-spacing: 0.02em;
+        font-size: clamp(1.85rem, 6vw, 3.4rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
         color: var(--text);
         -webkit-font-smoothing: antialiased;
         font-smooth: always;
@@ -1242,10 +1325,10 @@ const ContactPanel = styled.div`
     }
     p {
         font-family: var(--font-body);
-        font-size: 1.2rem;
+        font-size: 1.02rem;
         color: var(--text-soft);
-        line-height: 1.65;
-        letter-spacing: 0.02em;
+        line-height: 1.7;
+        letter-spacing: 0;
         -webkit-font-smoothing: antialiased;
         font-smooth: always;
         overflow-wrap: anywhere;
@@ -1276,6 +1359,64 @@ const AnimatedBackdrop = () => {
                 <Vignette />
             </PixelScene>
             <RainLayer aria-hidden $frame={RAIN_FRAMES[frameIndex]} />
+        </>
+    );
+};
+
+const AnimatedPortrait = () => {
+    const neutralFaceRef = useRef<HTMLImageElement | null>(null);
+    const [mood, setMood] = useState("smile");
+
+    useEffect(() => {
+        [PORTRAIT_NEUTRAL, PORTRAIT_SMILE].forEach((src) => {
+            const img = new Image();
+            img.src = `${src}?v=${PORTRAIT_CACHE_BUST}`;
+        });
+
+        let raf = 0;
+        let lastMood = "smile";
+        const startedAt = performance.now();
+
+        const loop = (now: number) => {
+            const phase = ((now - startedAt) % PORTRAIT_CYCLE_MS) / PORTRAIT_CYCLE_MS;
+            const expression = expressionAt(phase);
+            const neutralFace = neutralOpacityFromExpression(expression);
+            if (neutralFaceRef.current) {
+                neutralFaceRef.current.style.opacity = String(neutralFace);
+            }
+
+            const nextMood = neutralFace < 0.5 ? "smile" : "idle";
+            if (nextMood !== lastMood) {
+                lastMood = nextMood;
+                setMood(nextMood);
+            }
+
+            raf = window.requestAnimationFrame(loop);
+        };
+
+        raf = window.requestAnimationFrame(loop);
+        return () => window.cancelAnimationFrame(raf);
+    }, []);
+
+    return (
+        <>
+            <PortraitStage aria-hidden>
+                <PortraitImage
+                    src={`${PORTRAIT_SMILE}?v=${PORTRAIT_CACHE_BUST}`}
+                    alt=""
+                />
+                <PortraitFaceLayer
+                    ref={neutralFaceRef}
+                    src={`${PORTRAIT_NEUTRAL}?v=${PORTRAIT_CACHE_BUST}`}
+                    alt=""
+                    style={{ opacity: 0 }}
+                />
+            </PortraitStage>
+            <PortraitMeta>
+                <div>$ identity --mood={mood}</div>
+                <strong>{profile.name}</strong><br />
+                <span>{profile.role}</span> · {profile.location}
+            </PortraitMeta>
         </>
     );
 };
@@ -1372,15 +1513,7 @@ const App = () => {
                         </div>
                         <CodeCard aria-label="Portrait preview terminal">
                             <PortraitScan />
-                            <PortraitImage
-                                src="/assets/generated/hero-portrait-pixel.png?v=5"
-                                alt="Shravan Venkateswarlu — Senior Backend Engineer"
-                            />
-                            <PortraitMeta>
-                                <div>$ identity --format=8bit</div>
-                                <strong>{profile.name}</strong><br />
-                                <span>{profile.role}</span> · {profile.location}
-                            </PortraitMeta>
+                            <AnimatedPortrait />
                         </CodeCard>
                     </Hero>
                     <StatsBar>
