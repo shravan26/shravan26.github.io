@@ -8,6 +8,7 @@ const GlobalStyle = createGlobalStyle`
     html {
         min-height: 100%;
         scroll-behavior: smooth;
+        overflow-x: hidden;
     }
 
     body {
@@ -15,9 +16,10 @@ const GlobalStyle = createGlobalStyle`
         margin: 0;
         font-family: Inter, Ubuntu, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         background: #040408;
-        color: #c0caf5;
+        color: #f1f5ff;
         -webkit-font-smoothing: antialiased;
         text-rendering: optimizeLegibility;
+        overflow-x: hidden;
     }
 
     button,
@@ -28,8 +30,8 @@ const GlobalStyle = createGlobalStyle`
     }
 
     ::selection {
-        background: rgba(187, 154, 247, 0.35);
-        color: #c0caf5;
+        background: rgba(187, 154, 247, 0.4);
+        color: #f8fafc;
     }
 `;
 
