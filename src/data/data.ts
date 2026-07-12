@@ -1,195 +1,108 @@
 export const profile = {
-    name: "Shravan Venkateswarlu",
-    displayName: "Shravan",
-    role: "Backend Software Engineer",
-    tagline: "Distributed systems · Event-driven architecture · Tokyo-night reliability",
+    name: "Shravan Venkatesh",
+    role: "Full-stack product engineer",
     location: "Chennai, India",
     email: "shravan2406@gmail.com",
-    phone: "+91 9790853602",
+    phone: "+91 97908 53602",
     linkedin: "https://www.linkedin.com/in/shravan-venkatesh-568819159/",
     github: "https://github.com/shravan26",
     medium: "https://medium.com/@shravan_75948",
     summary:
-        "Backend focused Software Engineer with 5+ years building and scaling distributed systems using Node.js, TypeScript, Kubernetes, and event-driven architectures. Proven in latency reduction, cost optimization, observability, and dependable platform delivery.",
+        "I build polished, production-minded web platforms for healthcare and developer communities, with a focus on clear architecture, reliable workflows, and thoughtful user experiences.",
 };
 
 export const highlights = [
-    "Reduced backend effort for new commerce flows from 12-15 engineering days to 4-5 days with strategy-based abstractions.",
-    "Lowered p95 order latency from ~900-950 ms to ~550-600 ms by moving heavy request-path work to BullMQ workers.",
-    "Cut monthly cloud spend by ~56% with targeted ElastiCache caching, MongoDB Atlas Search tuning, and centralized Loki/Grafana logging.",
+    "Full-stack engineering across React, Vue, Node.js, GraphQL, PostgreSQL, MongoDB, and AWS.",
+    "Healthcare product experience spanning DICOM viewers, reporting workflows, file pipelines, and integrations.",
+    "Comfortable leading small teams, shaping architecture, and taking products from prototype to deployment.",
 ];
 
 export const stats = [
-    { value: "5+", label: "years scaling systems" },
-    { value: "~70%", label: "backend effort reduction" },
-    { value: "~56%", label: "cloud cost reduction" },
-    { value: "99%", label: "availability target owned" },
+    { value: "5+", label: "featured products" },
+    { value: "3", label: "frontend ecosystems" },
+    { value: "AWS", label: "deployment experience" },
 ];
 
-export const competencies = [
-    "Distributed systems",
-    "Backend development",
-    "System design",
-    "Event-driven architecture",
-    "Microservices & modular monoliths",
-    "Performance optimization",
-    "Test-driven development",
-    "Mentoring",
+export const stackDetails = [
+    { title: "React", image: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg" },
+    { title: "TypeScript", image: "https://upload.wikimedia.org/wikipedia/commons/4/4c/Typescript_logo_2020.svg" },
+    { title: "Next.js", image: "https://upload.wikimedia.org/wikipedia/commons/8/8e/Nextjs-logo.svg" },
+    { title: "Vue", image: "https://upload.wikimedia.org/wikipedia/commons/9/95/Vue.js_Logo_2.svg" },
+    { title: "Node.js", image: "https://upload.wikimedia.org/wikipedia/commons/d/d9/Node.js_logo.svg" },
+    { title: "GraphQL", image: "https://upload.wikimedia.org/wikipedia/commons/1/17/GraphQL_Logo.svg" },
+    { title: "PostgreSQL", image: "https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg" },
+    { title: "MongoDB", image: "https://upload.wikimedia.org/wikipedia/commons/9/93/MongoDB_Logo.svg" },
+    { title: "Redis", image: "https://upload.wikimedia.org/wikipedia/en/6/6b/Redis_Logo.svg" },
+    { title: "AWS", image: "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg" },
+    { title: "Docker", image: "https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png" },
+    { title: "Python", image: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg" },
 ];
-
-export const toolkitGroups = [
-    {
-        label: "Backend",
-        tools: ["Node.js", "TypeScript", "Java", "NestJS", "Express"],
-    },
-    {
-        label: "Cloud & DevOps",
-        tools: ["AWS EKS", "Lambda", "SQS", "SNS", "ElastiCache", "Kubernetes", "Helm", "Docker", "CDK", "SAM"],
-    },
-    {
-        label: "Data",
-        tools: ["PostgreSQL", "MySQL", "MongoDB", "DynamoDB", "ClickHouse", "Redis"],
-    },
-    {
-        label: "Observability",
-        tools: ["Grafana", "Loki", "Prometheus"],
-    },
-];
-
-export const stackDetails = toolkitGroups.flatMap((group) =>
-    group.tools.map((tool) => ({
-        title: tool,
-        image: "assets/neos-logo.png",
-    }))
-);
 
 export const experience = [
     {
-        company: "Mrmed",
-        title: "Lead Backend Engineer",
-        period: "08/2024 - Present",
-        accent: "E-commerce healthcare systems",
-        description:
-            "Architected strategy-based abstractions across cart, checkout, and coupon domains, moved expensive workloads into asynchronous workers, and owned EKS platform operations with Helm-based deployments and GitHub Actions CI/CD.",
-        bullets: [
-            "Reduced new backend flow effort from 12-15 engineering days to 4-5 days.",
-            "Reduced p95 order latency from ~900-950 ms to ~550-600 ms and p99 from ~1.2-1.3 s to ~800-850 ms.",
-            "Built high-performance ClickHouse analytics APIs with sub-second SQL execution.",
-        ],
-    },
-    {
-        company: "Fleet Studio",
-        title: "Software Development Engineer II (Full time / Contract)",
-        period: "10/2023 - 08/2024",
-        accent: "Serverless platforms",
-        description:
-            "Built and operated serverless microservices with AWS SAM and CDK, hardened authentication with Cognito and Lambda authorizers, and shipped document ingestion pipelines using Amazon Textract and OpenAI.",
-        bullets: [
-            "Improved pipeline robustness and data quality for noisy vaccination records.",
-            "Standardized reproducible deployments and environment parity with IaC.",
-            "Recognized as Employee of the Month for operational improvements.",
-        ],
-    },
-    {
-        company: "Fibonalabs",
-        title: "Senior Node.js Developer (SDE2)",
-        period: "01/2023 - 10/2023",
-        accent: "Enterprise integrations",
-        description:
-            "Designed a service layer for SAP Business One enterprise data synchronization, optimized MySQL and MongoDB to Kafka pipelines, and mentored two engineers while introducing TDD practices.",
-        bullets: [
-            "Improved response times and downstream throughput for high-traffic operations.",
-            "Introduced TDD practices to improve test coverage, code quality, and maintainability.",
-        ],
-    },
-    {
         company: "Neos Healthtech",
-        title: "CTO & Co-Founder",
-        period: "10/2020 - 01/2023",
-        accent: "Radiology infrastructure",
+        title: "Product engineering & technical leadership",
+        period: "Healthcare platforms",
         description:
-            "Architected an asynchronous radiology backend on AWS EC2/S3, integrated AI inference models, led a cross-functional engineering and AI team, and migrated the platform toward event-driven microservices with RabbitMQ.",
-        bullets: [
-            "Delivered ~99.9% uptime for core ingestion and processing APIs.",
-            "Scaled onboarding to ~10-12 diagnostic centers processing hundreds of imaging studies per day.",
-            "Built AI-assisted voice annotation workflows for radiology reporting.",
-        ],
+            "Built clinical workflow tools with DICOM viewing, structured reporting, S3-backed file handling, reverse proxies, queues, and deployment infrastructure for healthcare institutions in India.",
+    },
+    {
+        company: "Independent projects",
+        title: "Full-stack application development",
+        period: "Web products",
+        description:
+            "Designed and shipped end-to-end applications with modern frontend patterns, API layers, authentication, data persistence, and developer-friendly component systems.",
     },
 ];
 
 export const projects = [
     {
-        name: "RabbitMQ Node.js Infrastructure Library",
-        category: "Infrastructure library",
+        name: "Flow",
+        category: "Healthcare workflow platform",
         description:
-            "A production-grade RabbitMQ wrapper that standardizes producer/consumer patterns, trims boilerplate by ~40%, and adds predictable resiliency through custom retry logic and Dead Letter Exchanges.",
-        impact: "Standardized durable messaging patterns for event-driven services.",
-        stack: ["Node.js", "RabbitMQ", "TypeScript", "DLX", "Retry orchestration"],
+            "A radiology workflow product covering DICOM Web, HL7/FHIR context, key-driven viewer interactions, online reporting, S3 document handling, queues, NGINX, and SSL deployment.",
+        impact: "Used in healthcare institutions in India.",
+        stack: ["React", "Node.js", "DICOM", "FHIR", "AWS", "NGINX"],
         links: [],
-        g_link: [],
-        logo: "assets/neos-logo.png",
-        video: "",
-        screenshots: [],
-        experienceDescription: "Production-grade RabbitMQ wrapper for durable messaging patterns.",
-        experience: ["Reduced boilerplate by ~40%.", "Implemented custom retry logic and Dead Letter Exchanges."],
+        g_link: [], logo: "assets/neos-logo.png", video: "assets/projects/flow/neos-video.mp4", screenshots: [], experienceDescription: "", experience: [],
     },
     {
-        name: "Scalable Social Media Engine",
-        category: "Distributed backend",
+        name: "CovAI",
+        category: "Computer vision radiology product",
         description:
-            "A Node.js and PostgreSQL social platform backend that resolved N+1 query issues with Dataloader, maintained distributed sessions in Redis, and preserved transactional integrity with TypeORM.",
-        impact: "Improved API response times and database load under multi-container deployments.",
-        stack: ["Node.js", "PostgreSQL", "Redis", "TypeORM", "Dataloader"],
+            "A MEVN product for detecting and quantifying COVID-19 in CT scans, including upload flows, S3 retrieval, DICOM viewing, structured reports, and EC2 deployment.",
+        impact: "Led implementation with two developers.",
+        stack: ["Vue", "Node.js", "MongoDB", "AWS EC2", "S3", "CornerstoneJS"],
+        links: [],
+        g_link: [], logo: "assets/projects/covai/covai.jpeg", video: "", screenshots: [], experienceDescription: "", experience: [],
+    },
+    {
+        name: "SaidIt",
+        category: "Reddit-style community application",
+        description:
+            "A full-stack social platform built while deepening expertise in SSR, normalized caching, GraphQL code generation, authentication flows, Redis, and PostgreSQL.",
+        impact: "Advanced GraphQL and Next.js application architecture.",
+        stack: ["Next.js", "TypeScript", "GraphQL", "PostgreSQL", "Redis", "Urql"],
         links: ["https://github.com/shravan26/FS-RedditClone"],
-        g_link: ["https://github.com/shravan26/FS-RedditClone"],
-        logo: "assets/projects/saidit/SaidIt-logo.svg",
-        video: "assets/projects/saidit/SaidIt.webm",
-        screenshots: [],
-        experienceDescription: "Backend for a Reddit-style social platform with distributed sessions and transactional integrity.",
-        experience: ["Resolved N+1 query issues with Dataloader.", "Managed distributed sessions in Redis."],
+        g_link: ["https://github.com/shravan26/FS-RedditClone"], logo: "assets/projects/saidit/SaidIt-logo.svg", video: "assets/projects/saidit/SaidIt.webm", screenshots: [], experienceDescription: "", experience: [],
     },
     {
-        name: "Radiology AI Platform",
-        category: "Healthcare product",
+        name: "Centerfold",
+        category: "E-commerce platform",
         description:
-            "An AI-assisted radiology workflow with asynchronous ingestion, DICOM processing, S3-backed storage, voice annotation, reporting workflows, and third-party model integrations.",
-        impact: "Processed hundreds of imaging studies per day across ~10-12 diagnostic centers.",
-        stack: ["AWS EC2/S3", "RabbitMQ", "Node.js", "DICOM", "AI inference"],
-        links: [],
-        g_link: [],
-        logo: "assets/neos-logo.png",
-        video: "assets/projects/flow/neos-video.mp4",
-        screenshots: [],
-        experienceDescription: "Radiology workflow platform for imaging ingestion, reporting, and AI annotation.",
-        experience: ["Delivered ~99.9% uptime.", "Integrated AI-assisted voice annotation workflows."],
-    },
-    {
-        name: "Serverless Document Intelligence Pipeline",
-        category: "AWS automation",
-        description:
-            "A document ingestion system using Amazon Textract and OpenAI to structure noisy vaccination records, with reproducible serverless deployments through AWS SAM and CDK.",
-        impact: "Improved operational reliability and document data quality.",
-        stack: ["AWS Lambda", "SAM", "CDK", "Textract", "OpenAI", "Cognito"],
-        links: [],
-        g_link: [],
-        logo: "assets/neos-logo.png",
-        video: "",
-        screenshots: [],
-        experienceDescription: "Serverless document intelligence pipeline with AWS and OpenAI.",
-        experience: ["Structured noisy vaccination records.", "Hardened APIs with Cognito and Lambda authorizers."],
+            "A MERN commerce application with Redux Toolkit state management, Stripe payments, analytics-oriented aggregation, and responsive styled-components UI.",
+        impact: "Expanded product UX and payment integration experience.",
+        stack: ["React", "Redux Toolkit", "Node.js", "MongoDB", "Stripe"],
+        links: [
+            "https://github.com/shravan26/E-commerce-backend/tree/master",
+            "https://github.com/shravan26/MERN-projects/tree/react-mini",
+        ],
+        g_link: ["https://github.com/shravan26/E-commerce-backend/tree/master", "https://github.com/shravan26/MERN-projects/tree/react-mini"], logo: "assets/projects/centerfold/Centerfold.png", video: "assets/projects/centerfold/centerfold.webm", screenshots: [], experienceDescription: "", experience: [],
     },
 ];
 
-export const education = {
-    degree: "B.Tech, Computer Science and Engineering",
-    school: "SRM Institute of Science and Technology",
-    detail: "CGPA: 7.70",
-};
-
-export const languages = ["English", "Tamil", "Hindi", "Telugu"];
-
 export const titles = {
-    intro: `Hello there, I am ${profile.displayName}.`,
+    intro: `Hello there, I am ${profile.name}.`,
     designation: profile.role,
     motivation: "What drives my work",
     worked: "Core toolkit",
