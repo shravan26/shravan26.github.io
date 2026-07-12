@@ -402,7 +402,16 @@ const Stat = styled.div`
 `;
 
 const Section = styled.section`
-    padding: 78px 0 0;
+    padding: 88px 0 0;
+`;
+
+const SectionPrompt = styled.div`
+    color: var(--magenta);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.88rem;
+    margin-bottom: 10px;
+
+    span { color: var(--cyan); }
 `;
 
 const SectionHeader = styled.div`
@@ -410,17 +419,17 @@ const SectionHeader = styled.div`
     align-items: end;
     justify-content: space-between;
     gap: 28px;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
 
     h2 {
         margin: 0;
-        font-size: clamp(2rem, 5vw, 4.2rem);
+        font-size: clamp(2.2rem, 5.5vw, 4.4rem);
         line-height: 0.95;
         letter-spacing: -0.06em;
     }
 
     p {
-        max-width: 560px;
+        max-width: 520px;
         margin: 0;
         color: var(--muted);
         line-height: 1.7;
@@ -428,6 +437,36 @@ const SectionHeader = styled.div`
 
     @media (max-width: 820px) {
         display: grid;
+    }
+`;
+
+const marquee = keyframes`
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+`;
+
+const Ticker = styled.div`
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(6, 6, 12, 0.55);
+    margin: 28px 0 8px;
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+`;
+
+const TickerTrack = styled.div`
+    display: flex;
+    width: max-content;
+    gap: 28px;
+    padding: 12px 0;
+    animation: ${marquee} 28s linear infinite;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+
+    span::before {
+        content: "◆ ";
+        color: var(--magenta);
     }
 `;
 
@@ -439,26 +478,39 @@ const ProjectGrid = styled.div`
     @media (max-width: 820px) { grid-template-columns: 1fr; }
 `;
 
-const ProjectCard = styled.article`
+const ProjectCard = styled.article<{ $featured?: boolean }>`
     border: 1px solid var(--line);
     background: var(--panel-soft);
     border-radius: 16px;
-    padding: 24px;
-    min-height: 340px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: transform 170ms ease, border-color 170ms ease, background 170ms ease, box-shadow 170ms ease;
+    padding: ${(props) => (props.$featured ? "28px" : "24px")};
+    min-height: ${(props) => (props.$featured ? "280px" : "320px")};
+    grid-column: ${(props) => (props.$featured ? "1 / -1" : "auto")};
+    display: grid;
+    grid-template-columns: ${(props) => (props.$featured ? "1.2fr 0.8fr" : "1fr")};
+    gap: ${(props) => (props.$featured ? "28px" : "0")};
+    align-items: stretch;
+    transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), border-color 220ms ease, background 220ms ease, box-shadow 220ms ease;
 
     &:hover {
-        transform: translateY(-4px);
+        transform: translateY(-6px) rotate(-0.2deg);
         border-color: var(--magenta);
         background: rgba(20, 16, 36, 0.94);
-        box-shadow: 0 0 28px rgba(187, 154, 247, 0.14);
+        box-shadow: 0 0 28px rgba(187, 154, 247, 0.16);
     }
 
-    h3 { margin: 0 0 12px; font-size: 1.45rem; }
+    h3 { margin: 0 0 10px; font-size: ${(props) => (props.$featured ? "1.85rem" : "1.4rem")}; }
     p { color: var(--text-soft); line-height: 1.7; }
+
+    @media (max-width: 820px) {
+        grid-template-columns: 1fr;
+    }
+`;
+
+const ProjectHook = styled.p`
+    color: var(--cyan) !important;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.95rem;
+    margin: 0 0 12px !important;
 `;
 
 const Kicker = styled.div`
@@ -521,6 +573,13 @@ const CompetencyList = styled.div`
         border: 1px solid rgba(187, 154, 247, 0.1);
         border-radius: 10px;
         font-family: "IBM Plex Mono", monospace;
+        transition: transform 220ms ease, border-color 220ms ease, color 220ms ease;
+    }
+
+    span:hover {
+        transform: translateX(4px);
+        border-color: var(--magenta);
+        color: var(--magenta);
     }
 `;
 
@@ -752,18 +811,18 @@ const App = () => {
                 <TerminalShell id="top">
                     <TerminalChrome>
                         <Dots><span /><span /><span /></Dots>
-                        <span>ssh portfolio@shravan --theme=void-violet --weather=rain</span>
+                        <span>ssh portfolio@shravan --mode=arcade --weather=rain</span>
                         <span>status: online</span>
                     </TerminalChrome>
                     <Hero>
                         <div>
-                            <Prompt><span>$</span> cat ./profile/intro.md</Prompt>
+                            <Prompt><span>$</span> ./boot --profile shravan</Prompt>
                             <Title>{profile.displayName}</Title>
                             <Role>{profile.role}</Role>
                             <Lead>{profile.summary}</Lead>
                             <ActionRow>
-                                <Button $primary href="#work">View shipped systems</Button>
-                                <Button href={`mailto:${profile.email}`}>Start a conversation</Button>
+                                <Button $primary href="#work">Play the highlights</Button>
+                                <Button href={`mailto:${profile.email}`}>Ping me</Button>
                                 <Button href={profile.github} target="_blank" rel="noreferrer">GitHub</Button>
                             </ActionRow>
                         </div>
@@ -771,7 +830,7 @@ const App = () => {
                             <PortraitScan />
                             <PortraitImage
                                 src="/assets/generated/hero-portrait-professional.png"
-                                alt="Shravan Venkateswarlu — Backend Software Engineer"
+                                alt="Shravan Venkateswarlu — Senior Backend Engineer"
                             />
                             <PortraitMeta>
                                 <div>$ identity --show</div>
@@ -790,24 +849,34 @@ const App = () => {
                     </StatsBar>
                 </TerminalShell>
 
+                <Ticker aria-hidden>
+                    <TickerTrack>
+                        {[...toolkitGroups.flatMap((g) => g.tools), ...toolkitGroups.flatMap((g) => g.tools)].map((tool, index) => (
+                            <span key={`${tool}-${index}`}>{tool}</span>
+                        ))}
+                    </TickerTrack>
+                </Ticker>
+
                 <Section id="work">
+                    <SectionPrompt><span>$</span> ls ./quests --sort=impact</SectionPrompt>
                     <SectionHeader>
-                        <h2>Shipped systems</h2>
-                        <p>Production case studies — what shipped, why it mattered, and the engineering choices behind each system.</p>
+                        <h2>Main quests</h2>
+                        <p>Not a CV dump — stories about systems that had to work at 3am, and somehow still did.</p>
                     </SectionHeader>
                     <ProjectGrid>
-                        {projects.map((project) => (
-                            <ProjectCard key={project.name}>
+                        {projects.map((project, index) => (
+                            <ProjectCard key={project.name} $featured={index === 0}>
                                 <div>
                                     <Kicker>{project.category}</Kicker>
                                     <h3>{project.name}</h3>
+                                    <ProjectHook>{project.hook}</ProjectHook>
                                     <p>{project.description}</p>
                                     <ChipGrid>{project.stack.map((tool) => <Chip key={`${project.name}-${tool}`}>{tool}</Chip>)}</ChipGrid>
                                 </div>
                                 <div>
                                     <p><strong>{project.impact}</strong></p>
                                     {project.links.length > 0 && (
-                                        <Links>{project.links.map((link, index) => <a key={link} href={link} target="_blank" rel="noreferrer">source_{index + 1}</a>)}</Links>
+                                        <Links>{project.links.map((link, linkIndex) => <a key={link} href={link} target="_blank" rel="noreferrer">open_source_{linkIndex + 1}</a>)}</Links>
                                     )}
                                 </div>
                             </ProjectCard>
@@ -816,13 +885,14 @@ const App = () => {
                 </Section>
 
                 <Section id="stack">
+                    <SectionPrompt><span>$</span> neofetch --skills</SectionPrompt>
                     <SectionHeader>
-                        <h2>Operating system</h2>
-                        <p>Languages, platforms, and practices I use to design and operate reliable distributed backends.</p>
+                        <h2>Loadout</h2>
+                        <p>The toys in the backpack — from NestJS to Loki — when the boss fight is latency, cost, or chaos.</p>
                     </SectionHeader>
                     <Toolkit>
                         <SkillPanel>
-                            <Kicker>core competencies</Kicker>
+                            <Kicker>unlocked abilities</Kicker>
                             <CompetencyList>{competencies.map((item) => <span key={item}>✓ {item}</span>)}</CompetencyList>
                         </SkillPanel>
                         <SkillPanel>
@@ -837,9 +907,10 @@ const App = () => {
                 </Section>
 
                 <Section id="timeline">
+                    <SectionPrompt><span>$</span> journalctl -u career --follow</SectionPrompt>
                     <SectionHeader>
-                        <h2>Build log</h2>
-                        <p>Compressed role history — expand an entry for the full resume bullets and ownership notes.</p>
+                        <h2>Save points</h2>
+                        <p>Tap a level to expand the lore. Metrics stay; the vibes got an upgrade.</p>
                     </SectionHeader>
                     <BuildLog />
                 </Section>
@@ -847,12 +918,12 @@ const App = () => {
                 <Footer id="contact">
                     <ContactPanel>
                         <div>
-                            <Kicker>contact</Kicker>
-                            <h2>Have a backend problem worth solving?</h2>
-                            <p>Email <a href={`mailto:${profile.email}`}>{profile.email}</a>, call {profile.phone}, or connect on <a href={profile.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>.</p>
+                            <Kicker>co-op mode</Kicker>
+                            <h2>Got a backend boss fight?</h2>
+                            <p>Drop a line at <a href={`mailto:${profile.email}`}>{profile.email}</a>, call {profile.phone}, or find me on <a href={profile.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>.</p>
                         </div>
                         <div>
-                            <Kicker>extras</Kicker>
+                            <Kicker>player stats</Kicker>
                             <p><strong>{education.degree}</strong><br />{education.school} · {education.detail}</p>
                             <p>{languages.map((language) => `${language} (Fluent)`).join(" · ")}</p>
                         </div>
