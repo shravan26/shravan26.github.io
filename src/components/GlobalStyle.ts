@@ -14,9 +14,9 @@ const GlobalStyle = createGlobalStyle`
     body {
         min-height: 100%;
         margin: 0;
-        font-family: Inter, Ubuntu, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: "VT323", "IBM Plex Mono", monospace;
         background: #040408;
-        color: #f1f5ff;
+        color: #f5f7ff;
         -webkit-font-smoothing: antialiased;
         text-rendering: optimizeLegibility;
         overflow-x: hidden;
