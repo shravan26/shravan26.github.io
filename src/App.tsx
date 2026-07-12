@@ -21,14 +21,19 @@ const scan = keyframes`
     to { transform: translateY(100vh); }
 `;
 
-const drift = keyframes`
-    from { background-position: 0 0; }
-    to { background-position: 0 80px; }
-`;
-
 const glowPulse = keyframes`
     0%, 100% { opacity: 0.35; }
     50% { opacity: 0.7; }
+`;
+
+const rainFall = keyframes`
+    from { background-position: 0 0; }
+    to { background-position: 20px 420px; }
+`;
+
+const rainFallFast = keyframes`
+    from { background-position: 0 0; }
+    to { background-position: -30px 640px; }
 `;
 
 const Page = styled.main`
@@ -51,11 +56,7 @@ const Page = styled.main`
 
     min-height: 100vh;
     color: var(--text);
-    background:
-        radial-gradient(circle at 14% 0%, rgba(187, 154, 247, 0.14), transparent 28rem),
-        radial-gradient(circle at 88% 16%, rgba(157, 124, 255, 0.1), transparent 30rem),
-        radial-gradient(circle at 50% 110%, rgba(122, 162, 247, 0.07), transparent 34rem),
-        linear-gradient(180deg, #0a0a14 0%, #06060c 48%, #040408 100%);
+    background: transparent;
     position: relative;
     overflow: hidden;
 
@@ -65,11 +66,12 @@ const Page = styled.main`
         inset: 0;
         pointer-events: none;
         background:
-            linear-gradient(rgba(187, 154, 247, 0.035) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(157, 124, 255, 0.03) 1px, transparent 1px);
+            linear-gradient(rgba(187, 154, 247, 0.028) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(157, 124, 255, 0.02) 1px, transparent 1px);
         background-size: 100% 3px, 48px 100%;
         mix-blend-mode: screen;
-        z-index: 1;
+        z-index: 2;
+        opacity: 0.55;
     }
 
     &::after {
@@ -81,39 +83,70 @@ const Page = styled.main`
         background: linear-gradient(
             to bottom,
             transparent,
-            rgba(187, 154, 247, 0.05),
-            rgba(157, 124, 255, 0.04),
+            rgba(187, 154, 247, 0.04),
+            rgba(157, 124, 255, 0.03),
             transparent
         );
         animation: ${scan} 8s linear infinite;
-        z-index: 2;
+        z-index: 3;
     }
 `;
 
-const MatrixBackdrop = styled.div`
+const CityBackdrop = styled.div`
     position: fixed;
     inset: 0;
-    pointer-events: none;
-    opacity: 0.2;
     z-index: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(4, 4, 8, 0.55) 0%, rgba(6, 6, 12, 0.72) 45%, rgba(4, 4, 8, 0.9) 100%),
+        radial-gradient(circle at 50% 20%, rgba(187, 154, 247, 0.12), transparent 42%),
+        url(/assets/generated/tokyo-rain-void-violet.png) center / cover no-repeat;
+    filter: saturate(0.92) contrast(1.05);
+`;
+
+const RainLayer = styled.div`
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.35;
     background-image:
-        linear-gradient(180deg, rgba(187, 154, 247, 0.12), transparent 40%),
         repeating-linear-gradient(
-            90deg,
-            transparent 0 52px,
-            rgba(157, 124, 255, 0.1) 52px 53px,
-            transparent 53px 104px
+            105deg,
+            transparent 0 10px,
+            rgba(192, 202, 245, 0.045) 10px 11px,
+            transparent 11px 22px
+        ),
+        repeating-linear-gradient(
+            98deg,
+            transparent 0 14px,
+            rgba(187, 154, 247, 0.03) 14px 15px,
+            transparent 15px 28px
         );
-    background-size: 100% 80px, 100% 100%;
-    animation: ${drift} 16s linear infinite;
+    animation: ${rainFall} 0.9s linear infinite;
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0.55;
+        background-image: repeating-linear-gradient(
+            112deg,
+            transparent 0 8px,
+            rgba(169, 177, 214, 0.05) 8px 9px,
+            transparent 9px 18px
+        );
+        animation: ${rainFallFast} 0.55s linear infinite;
+    }
 `;
 
 const Shell = styled.div`
     width: min(1180px, calc(100% - 44px));
     margin: 0 auto;
     position: relative;
-    z-index: 3;
+    z-index: 4;
 `;
+
 
 const Topbar = styled.nav`
     display: flex;
@@ -150,7 +183,8 @@ const NavLinks = styled.div`
 
 const TerminalShell = styled.section`
     border: 1px solid var(--line-strong);
-    background: linear-gradient(180deg, rgba(16, 14, 28, 0.96), rgba(6, 6, 12, 0.96));
+    background: linear-gradient(180deg, rgba(14, 12, 28, 0.88), rgba(6, 6, 12, 0.9));
+    backdrop-filter: blur(10px);
     box-shadow:
         0 30px 90px rgba(0, 0, 0, 0.65),
         0 0 40px rgba(187, 154, 247, 0.1),
@@ -269,38 +303,71 @@ const Button = styled.a<{ $primary?: boolean }>`
 `;
 
 const CodeCard = styled.aside`
-    border: 1px solid var(--line);
-    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--line-strong);
+    background: rgba(0, 0, 0, 0.45);
     border-radius: 14px;
-    padding: 20px;
+    padding: 0;
     font-family: "IBM Plex Mono", monospace;
     min-height: 100%;
     position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 32px rgba(187, 154, 247, 0.12);
 
     &::before {
-        content: "portfolio.config.ts";
+        content: "viewer ./identity.png --tty";
         position: absolute;
-        top: -12px;
-        left: 18px;
-        padding: 2px 8px;
-        background: #06060c;
+        top: 12px;
+        left: 12px;
+        z-index: 2;
+        padding: 3px 8px;
+        background: rgba(6, 6, 12, 0.88);
         color: var(--amber);
-        font-size: 0.76rem;
+        font-size: 0.72rem;
         border: 1px solid rgba(224, 175, 104, 0.25);
+        border-radius: 4px;
     }
 `;
 
-const CodeLine = styled.div`
-    display: grid;
-    grid-template-columns: 32px 1fr;
-    gap: 12px;
-    color: var(--muted);
-    line-height: 1.8;
-
-    span { color: rgba(86, 95, 137, 0.7); text-align: right; }
-    strong { color: var(--cyan); font-weight: 600; }
-    em { color: var(--magenta); font-style: normal; }
+const PortraitImage = styled.img`
+    display: block;
+    width: 100%;
+    flex: 1;
+    min-height: 340px;
+    object-fit: cover;
+    object-position: center top;
 `;
+
+const PortraitScan = styled.div`
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background:
+        linear-gradient(180deg, rgba(187, 154, 247, 0.1), transparent 24%, transparent 70%, rgba(6, 6, 12, 0.5)),
+        repeating-linear-gradient(
+            180deg,
+            transparent 0 3px,
+            rgba(157, 124, 255, 0.04) 3px 4px
+        );
+`;
+
+const PortraitMeta = styled.div`
+    position: relative;
+    z-index: 2;
+    margin-top: auto;
+    padding: 12px 14px;
+    border-top: 1px solid rgba(187, 154, 247, 0.2);
+    background: rgba(6, 6, 12, 0.9);
+    font-size: 0.78rem;
+    color: var(--text-soft);
+    line-height: 1.55;
+
+    strong { color: var(--magenta); }
+    span { color: var(--cyan); }
+`;
+
 
 const StatsBar = styled.div`
     display: grid;
@@ -475,8 +542,13 @@ const LogItem = styled.article<{ $open: boolean }>`
     border-radius: 14px;
     background: ${(props) => (props.$open ? "rgba(20, 16, 36, 0.96)" : "var(--panel-soft)")};
     overflow: hidden;
-    transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    transition:
+        border-color 320ms ease,
+        background 320ms ease,
+        box-shadow 320ms ease,
+        transform 320ms ease;
     box-shadow: ${(props) => (props.$open ? "0 0 24px rgba(187, 154, 247, 0.12)" : "none")};
+    transform: translateY(${(props) => (props.$open ? "-1px" : "0")});
 `;
 
 const LogHeader = styled.button`
@@ -491,6 +563,11 @@ const LogHeader = styled.button`
     text-align: left;
     cursor: pointer;
     padding: 18px 20px;
+    transition: background 240ms ease;
+
+    &:hover {
+        background: rgba(187, 154, 247, 0.04);
+    }
 
     @media (max-width: 760px) {
         grid-template-columns: 1fr auto;
@@ -522,6 +599,10 @@ const LogSummary = styled.div`
         color: var(--muted);
         font-size: 0.92rem;
         line-height: 1.5;
+        max-height: 3.2em;
+        overflow: hidden;
+        opacity: 1;
+        transition: opacity 280ms ease, max-height 320ms ease;
     }
 `;
 
@@ -530,17 +611,34 @@ const LogToggle = styled.span<{ $open: boolean }>`
     color: var(--magenta);
     font-size: 0.8rem;
     white-space: nowrap;
-    transform: ${(props) => (props.$open ? "rotate(90deg)" : "none")};
-    transition: transform 160ms ease;
+    display: inline-block;
+    transform: rotate(${(props) => (props.$open ? "90deg" : "0deg")});
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
 `;
 
 const LogBody = styled.div<{ $open: boolean }>`
-    display: ${(props) => (props.$open ? "grid" : "none")};
+    display: grid;
+    grid-template-rows: ${(props) => (props.$open ? "1fr" : "0fr")};
+    transition: grid-template-rows 420ms cubic-bezier(0.22, 1, 0.36, 1);
+`;
+
+const LogBodyInner = styled.div`
+    overflow: hidden;
+    min-height: 0;
+`;
+
+const LogBodyContent = styled.div<{ $open: boolean }>`
+    display: grid;
     gap: 12px;
-    padding: 0 20px 20px;
-    border-top: 1px solid rgba(187, 154, 247, 0.1);
-    margin-top: -2px;
-    padding-top: 16px;
+    padding: ${(props) => (props.$open ? "0 20px 20px" : "0 20px")};
+    border-top: 1px solid ${(props) => (props.$open ? "rgba(187, 154, 247, 0.1)" : "transparent")};
+    opacity: ${(props) => (props.$open ? 1 : 0)};
+    transform: translateY(${(props) => (props.$open ? "0" : "-6px")});
+    transition:
+        opacity 320ms ease ${(props) => (props.$open ? "80ms" : "0ms")},
+        transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 280ms ease,
+        padding 320ms ease;
 `;
 
 const LogAccent = styled.div`
@@ -611,18 +709,22 @@ const BuildLog = () => {
                             <LogDate>{item.period}</LogDate>
                             <LogSummary>
                                 <h3>{item.title} · {item.company}</h3>
-                                {!open && <p>{item.description}</p>}
+                                <p style={{ opacity: open ? 0 : 1, maxHeight: open ? 0 : "3.2em" }}>{item.description}</p>
                             </LogSummary>
                             <LogToggle $open={open} aria-hidden>{open ? "[-]" : "[+]"}</LogToggle>
                         </LogHeader>
                         <LogBody $open={open}>
-                            <LogAccent>{item.accent}</LogAccent>
-                            <p style={{ margin: 0, color: "var(--text-soft)", lineHeight: 1.7 }}>{item.description}</p>
-                            <BulletList>
-                                {item.bullets.map((bullet) => (
-                                    <li key={bullet}>{bullet}</li>
-                                ))}
-                            </BulletList>
+                            <LogBodyInner>
+                                <LogBodyContent $open={open}>
+                                    <LogAccent>{item.accent}</LogAccent>
+                                    <p style={{ margin: 0, color: "var(--text-soft)", lineHeight: 1.7 }}>{item.description}</p>
+                                    <BulletList>
+                                        {item.bullets.map((bullet) => (
+                                            <li key={bullet}>{bullet}</li>
+                                        ))}
+                                    </BulletList>
+                                </LogBodyContent>
+                            </LogBodyInner>
                         </LogBody>
                     </LogItem>
                 );
@@ -634,7 +736,8 @@ const BuildLog = () => {
 const App = () => {
     return (
         <Page>
-            <MatrixBackdrop />
+            <CityBackdrop aria-hidden />
+            <RainLayer aria-hidden />
             <Shell>
                 <Topbar aria-label="Primary navigation">
                     <Brand href="#top">~/shravan.dev</Brand>
@@ -649,7 +752,7 @@ const App = () => {
                 <TerminalShell id="top">
                     <TerminalChrome>
                         <Dots><span /><span /><span /></Dots>
-                        <span>ssh portfolio@shravan --theme=void-violet</span>
+                        <span>ssh portfolio@shravan --theme=void-violet --weather=rain</span>
                         <span>status: online</span>
                     </TerminalChrome>
                     <Hero>
@@ -664,14 +767,17 @@ const App = () => {
                                 <Button href={profile.github} target="_blank" rel="noreferrer">GitHub</Button>
                             </ActionRow>
                         </div>
-                        <CodeCard aria-label="Portfolio configuration preview">
-                            <CodeLine><span>01</span><div>const engineer = <strong>{`{`}</strong></div></CodeLine>
-                            <CodeLine><span>02</span><div>&nbsp;&nbsp;name: <em>"{profile.name}"</em>,</div></CodeLine>
-                            <CodeLine><span>03</span><div>&nbsp;&nbsp;focus: <em>"backend platforms"</em>,</div></CodeLine>
-                            <CodeLine><span>04</span><div>&nbsp;&nbsp;ships: [<em>"APIs"</em>, <em>"queues"</em>, <em>"infra"</em>],</div></CodeLine>
-                            <CodeLine><span>05</span><div>&nbsp;&nbsp;values: [<em>"latency"</em>, <em>"reliability"</em>, <em>"clarity"</em>],</div></CodeLine>
-                            <CodeLine><span>06</span><div>&nbsp;&nbsp;contact: <em>"{profile.email}"</em></div></CodeLine>
-                            <CodeLine><span>07</span><div><strong>{`}`}</strong>;</div></CodeLine>
+                        <CodeCard aria-label="Portrait preview terminal">
+                            <PortraitScan />
+                            <PortraitImage
+                                src="/assets/generated/hero-portrait-professional.png"
+                                alt="Shravan Venkateswarlu — Backend Software Engineer"
+                            />
+                            <PortraitMeta>
+                                <div>$ identity --show</div>
+                                <strong>{profile.name}</strong><br />
+                                <span>{profile.role}</span> · {profile.location}
+                            </PortraitMeta>
                         </CodeCard>
                     </Hero>
                     <StatsBar>
