@@ -125,6 +125,21 @@ const navWarpPulse = keyframes`
     100% { opacity: 0; }
 `;
 
+const pixelFloat = keyframes`
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+`;
+
+const pixelGlow = keyframes`
+    0%, 100% { box-shadow: 0 0 0 1px rgba(187, 154, 247, 0.35), 0 12px 36px rgba(0, 0, 0, 0.45); }
+    50% { box-shadow: 0 0 0 1px rgba(216, 180, 254, 0.7), 0 16px 44px rgba(187, 154, 247, 0.22); }
+`;
+
+const PIXEL_FACE_SMILE = "/assets/generated/favicon-pixel-face.png";
+const PIXEL_FACE_NEUTRAL = "/assets/generated/favicon-pixel-face-neutral.png";
+const PIXEL_FACE_CACHE_BUST = "smile1";
+const PIXEL_CYCLE_MS = 7200;
+
 const BOOT_LINES = [
     "> mount /dev/neon",
     "> sync weather=rain city=tokyo",
@@ -446,7 +461,7 @@ const PixelParallax = styled.div`
     animation: ${parallaxScroll} 70s linear infinite;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
-    opacity: 0.55;
+    opacity: 0.7;
 
     &::before,
     &::after {
@@ -454,7 +469,7 @@ const PixelParallax = styled.div`
         flex: 0 0 50%;
         height: 100%;
         background:
-            linear-gradient(180deg, rgba(4, 4, 8, 0.62) 0%, rgba(4, 4, 8, 0.55) 35%, rgba(4, 4, 8, 0.88) 100%),
+            linear-gradient(180deg, rgba(4, 4, 8, 0.4) 0%, rgba(4, 4, 8, 0.34) 35%, rgba(4, 4, 8, 0.7) 100%),
             url(/assets/generated/bg-16bit-tokyo-rain.png) center / cover no-repeat;
         image-rendering: pixelated;
         image-rendering: crisp-edges;
@@ -465,19 +480,19 @@ const NeonWash = styled.div`
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(ellipse 50% 40% at 20% 30%, rgba(187, 154, 247, 0.07), transparent 60%),
-        radial-gradient(ellipse 45% 35% at 78% 40%, rgba(157, 124, 255, 0.06), transparent 60%);
+        radial-gradient(ellipse 50% 40% at 20% 30%, rgba(187, 154, 247, 0.12), transparent 60%),
+        radial-gradient(ellipse 45% 35% at 78% 40%, rgba(157, 124, 255, 0.1), transparent 60%);
     animation: ${neonFlicker} 6s ease-in-out infinite;
     mix-blend-mode: screen;
-    opacity: 0.75;
+    opacity: 0.88;
 `;
 
 const Vignette = styled.div`
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(ellipse at center, transparent 18%, rgba(4, 4, 8, 0.78) 100%),
-        linear-gradient(180deg, rgba(4, 4, 8, 0.55), transparent 16%, transparent 62%, rgba(4, 4, 8, 0.9));
+        radial-gradient(ellipse at center, transparent 28%, rgba(4, 4, 8, 0.62) 100%),
+        linear-gradient(180deg, rgba(4, 4, 8, 0.35), transparent 18%, transparent 64%, rgba(4, 4, 8, 0.78));
 `;
 
 const RainLayer = styled.div<{ $frame: string }>`
@@ -485,7 +500,7 @@ const RainLayer = styled.div<{ $frame: string }>`
     inset: 0;
     z-index: 1;
     pointer-events: none;
-    opacity: 0.16;
+    opacity: 0.22;
     background-image: url(${(props) => props.$frame});
     background-repeat: repeat;
     background-size: 128px 128px;
@@ -497,7 +512,7 @@ const RainLayer = styled.div<{ $frame: string }>`
         content: "";
         position: absolute;
         inset: 0;
-        background: radial-gradient(ellipse at center, transparent 36%, rgba(4, 4, 8, 0.5) 100%);
+        background: radial-gradient(ellipse at center, transparent 44%, rgba(4, 4, 8, 0.36) 100%);
     }
 `;
 
@@ -1558,11 +1573,15 @@ const ContactPanel = styled.div`
     background: #0c0c16;
     padding: clamp(20px, 5vw, 48px);
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 28px;
+    grid-template-columns: 1.15fr 1fr;
+    grid-template-areas:
+        "copy stats"
+        "pixel pixel";
+    gap: 28px 32px;
     position: relative;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
     min-width: 0;
+    overflow: hidden;
 
     &::before {
         content: "";
@@ -1572,6 +1591,9 @@ const ContactPanel = styled.div`
         background: linear-gradient(90deg, transparent, var(--magenta), var(--cyan), transparent);
         animation: ${glowPulse} 3.2s ease-in-out infinite;
     }
+
+    > div:nth-child(1) { grid-area: copy; min-width: 0; }
+    > div:nth-child(2) { grid-area: stats; min-width: 0; }
 
     h2 {
         margin: 0 0 18px;
@@ -1599,7 +1621,152 @@ const ContactPanel = styled.div`
 
     @media (max-width: 760px) {
         grid-template-columns: 1fr;
+        grid-template-areas:
+            "copy"
+            "stats"
+            "pixel";
         gap: 20px;
+    }
+`;
+
+const ContactPixel = styled.div<{ $visible: boolean }>`
+    grid-area: pixel;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 14px;
+    width: 100%;
+    margin: 4px 0 0;
+    padding-top: 22px;
+    border-top: 1px dashed rgba(187, 154, 247, 0.22);
+    opacity: ${(props) => (props.$visible ? 1 : 0)};
+    transform: translateY(${(props) => (props.$visible ? "0" : "28px")}) scale(${(props) => (props.$visible ? 1 : 0.92)});
+    filter: ${(props) => (props.$visible ? "none" : "blur(8px)")};
+    transition:
+        opacity 720ms cubic-bezier(0.16, 1, 0.3, 1),
+        transform 720ms cubic-bezier(0.16, 1, 0.3, 1),
+        filter 720ms ease;
+    transition-delay: ${(props) => (props.$visible ? "80ms" : "0ms")};
+
+    @media (prefers-reduced-motion: reduce) {
+        opacity: 1;
+        transform: none;
+        filter: none;
+        transition: none;
+    }
+`;
+
+const ContactPixelFrame = styled.div<{ $visible: boolean }>`
+    position: relative;
+    width: clamp(120px, 20vw, 156px);
+    aspect-ratio: 1;
+    border: 2px solid rgba(187, 154, 247, 0.55);
+    border-radius: 10px;
+    background: #05050a;
+    overflow: hidden;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    flex-shrink: 0;
+    animation: ${(props) => (props.$visible ? css`${pixelFloat} 3.6s ease-in-out infinite, ${pixelGlow} 3.6s ease-in-out infinite` : "none")};
+    animation-delay: ${(props) => (props.$visible ? "720ms, 720ms" : "0ms, 0ms")};
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        background: linear-gradient(180deg, rgba(187, 154, 247, 0.12), transparent 28%, transparent 72%, rgba(6, 6, 12, 0.35));
+        opacity: ${(props) => (props.$visible ? 1 : 0)};
+        transform: translateY(${(props) => (props.$visible ? "0" : "-40%")});
+        transition: opacity 600ms ease 220ms, transform 900ms cubic-bezier(0.16, 1, 0.3, 1) 120ms;
+    }
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+            180deg,
+            transparent 0 2px,
+            rgba(0, 0, 0, 0.18) 2px 3px
+        );
+        opacity: 0.45;
+    }
+
+    img {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 52% 42%;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+        transform: scale(${(props) => (props.$visible ? 1.04 : 1.12)});
+        transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1) 100ms;
+    }
+
+    img[data-layer="neutral"] {
+        z-index: 1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+
+        &::before {
+            opacity: 1;
+            transform: none;
+            transition: none;
+        }
+
+        img {
+            transform: scale(1.04);
+            transition: none;
+        }
+    }
+`;
+
+const ContactPixelMeta = styled.div<{ $visible: boolean }>`
+    min-width: 0;
+    opacity: ${(props) => (props.$visible ? 1 : 0)};
+    transform: translateY(${(props) => (props.$visible ? "0" : "12px")});
+    transition: opacity 640ms ease 240ms, transform 640ms cubic-bezier(0.16, 1, 0.3, 1) 240ms;
+
+    strong {
+        display: block;
+        margin-bottom: 6px;
+        font-family: var(--font-pixel);
+        font-size: 1.35rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #e9d5ff;
+        font-weight: 400;
+    }
+
+    span {
+        display: block;
+        font-family: var(--font-mono);
+        font-size: 0.88rem;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+        line-height: 1.6;
+    }
+
+    em {
+        color: var(--cyan);
+        font-style: normal;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        opacity: 1;
+        transform: none;
+        transition: none;
     }
 `;
 
@@ -1622,6 +1789,98 @@ const AnimatedBackdrop = () => {
             </PixelScene>
             <RainLayer aria-hidden $frame={RAIN_FRAMES[frameIndex]} />
         </>
+    );
+};
+
+const ContactPixelAvatar = () => {
+    const rootRef = useRef<HTMLDivElement | null>(null);
+    const neutralFaceRef = useRef<HTMLImageElement | null>(null);
+    const [visible, setVisible] = useState(false);
+    const [mood, setMood] = useState("smile");
+
+    useEffect(() => {
+        const node = rootRef.current;
+        if (!node) return undefined;
+
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            setVisible(true);
+            return undefined;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { threshold: 0.35, rootMargin: "0px 0px -8% 0px" },
+        );
+
+        observer.observe(node);
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        if (!visible) return undefined;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+
+        [PIXEL_FACE_SMILE, PIXEL_FACE_NEUTRAL].forEach((src) => {
+            const img = new Image();
+            img.src = `${src}?v=${PIXEL_FACE_CACHE_BUST}`;
+        });
+
+        let raf = 0;
+        let lastMood = "smile";
+        const startedAt = performance.now();
+
+        const loop = (now: number) => {
+            const phase = ((now - startedAt) % PIXEL_CYCLE_MS) / PIXEL_CYCLE_MS;
+            const expression = expressionAt(phase);
+            const neutralFace = neutralOpacityFromExpression(expression);
+            if (neutralFaceRef.current) {
+                neutralFaceRef.current.style.opacity = String(neutralFace);
+            }
+
+            const nextMood = neutralFace < 0.5 ? "smile" : "idle";
+            if (nextMood !== lastMood) {
+                lastMood = nextMood;
+                setMood(nextMood);
+            }
+
+            raf = window.requestAnimationFrame(loop);
+        };
+
+        raf = window.requestAnimationFrame(loop);
+        return () => window.cancelAnimationFrame(raf);
+    }, [visible]);
+
+    return (
+        <ContactPixel ref={rootRef} $visible={visible} aria-label={`${profile.displayName} pixel portrait`}>
+            <ContactPixelFrame $visible={visible}>
+                <img
+                    src={`${PIXEL_FACE_SMILE}?v=${PIXEL_FACE_CACHE_BUST}`}
+                    alt=""
+                    aria-hidden
+                />
+                <img
+                    ref={neutralFaceRef}
+                    data-layer="neutral"
+                    src={`${PIXEL_FACE_NEUTRAL}?v=${PIXEL_FACE_CACHE_BUST}`}
+                    alt=""
+                    aria-hidden
+                    style={{ opacity: 0 }}
+                />
+            </ContactPixelFrame>
+            <ContactPixelMeta $visible={visible}>
+                <strong>player_icon.pxl</strong>
+                <span>
+                    status: <em>online</em> · mood: <em>{mood}</em>
+                    <br />
+                    mode: co-op · {profile.location}
+                </span>
+            </ContactPixelMeta>
+        </ContactPixel>
     );
 };
 
@@ -1979,6 +2238,7 @@ const App = () => {
                             <p><strong>{education.degree}</strong><br />{education.school} · {education.detail}</p>
                             <p>{languages.map((language) => `${language} (Fluent)`).join(" · ")}</p>
                         </div>
+                        <ContactPixelAvatar />
                     </ContactPanel>
                 </Footer>
             </Shell>
