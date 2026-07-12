@@ -1,19 +1,34 @@
 import { createGlobalStyle } from "styled-components";
+
 const GlobalStyle = createGlobalStyle`
-    *{
-        box-sizing : border-box;
-    }    
-    html { 
-        height : 100%;
+    * {
+        box-sizing: border-box;
     }
+
+    html {
+        min-height: 100%;
+        scroll-behavior: smooth;
+    }
+
     body {
-        
-        // background : #2D3032;
-        background : #191919;
-        color : #e9e2d6 ;
-        margin : 0;
-        font-family: 'Ubuntu', sans-serif;
-        overflow-y: hidden;
+        min-height: 100%;
+        margin: 0;
+        font-family: Inter, Ubuntu, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #08111f;
+        color: #f8fafc;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+        font: inherit;
+    }
+
+    ::selection {
+        background: rgba(94, 234, 212, 0.35);
     }
 `;
 
